@@ -1,0 +1,72 @@
+{
+  "version": "1.0",
+  "categories": [
+    {
+      "id": "CAT_ACCESS_ACCOUNT",
+      "name": "Account & Access",
+      "description": "Inloggen, MFA, wachtwoord reset, rechten/toegang.",
+      "keywords": ["password", "wachtwoord", "mfa", "2fa", "login", "inloggen", "access", "toegang", "permissions", "rechten"]
+    },
+    {
+      "id": "CAT_M365_COPILOT",
+      "name": "M365 Copilot",
+      "description": "Copilot in Outlook/Word/Teams, prompts, policies, enablement.",
+      "keywords": ["m365 copilot", "copilot outlook", "copilot word", "copilot teams", "prompt", "copilot policy", "copilot licentie m365"]
+    },
+    {
+      "id": "CAT_GH_COPILOT",
+      "name": "GitHub Copilot",
+      "description": "Copilot for GitHub: toegang, seat, inloggen, use cases, settings.",
+      "keywords": ["github copilot", "copilot for github", "copilot seat", "copilot license", "copilot extension", "vs code copilot", "jetbrains copilot"]
+    },
+    {
+      "id": "CAT_SOFTWARE_INSTALL",
+      "name": "Software Install & Updates",
+      "description": "Installeren/updaten van tools en packages, rechten, compatibility.",
+      "keywords": ["install", "installer", "update", "msi", "pkg", "admin rights", "permissions", "intune", "company portal"]
+    },
+    {
+      "id": "CAT_VPN_REMOTE",
+      "name": "VPN & Remote Access",
+      "description": "VPN verbinding, remote access, certificaten, timeouts.",
+      "keywords": ["vpn", "remote", "citrix", "anyconnect", "tunnel", "certificate", "certificaat", "timeout"]
+    },
+    {
+      "id": "CAT_NETWORK_WIFI",
+      "name": "Network & Wi‑Fi",
+      "description": "Wi‑Fi, LAN, DNS, proxy, connectivity issues.",
+      "keywords": ["wifi", "wi-fi", "lan", "dns", "proxy", "network", "verbinding", "connectivity", "dhcp", "ip address"]
+    },
+    {
+      "id": "CAT_HARDWARE_DEVICE",
+      "name": "Device & Hardware",
+      "description": "Laptop issues, peripherals, docking, performance.",
+      "keywords": ["laptop", "dock", "docking", "battery", "keyboard", "touchpad", "monitor", "slow", "performance", "overheat"]
+    },
+    {
+      "id": "CAT_PRINTER",
+      "name": "Printer & Scanning",
+      "description": "Printer setup, queues, scanning, drivers.",
+      "keywords": ["printer", "print", "scan", "scanner", "driver", "queue", "spooler", "toner"]
+    },
+    {
+      "id": "CAT_ONBOARDING_HR",
+      "name": "Onboarding / HR loket",
+      "description": "Nieuwe medewerker, contract, declaraties, HR-portal.",
+      "keywords": ["onboarding", "new hire", "contract", "declaratie", "hr", "payroll", "vacation", "verlof", "hr portal"]
+    },
+    {
+      "id": "CAT_PROCUREMENT_BILLING",
+      "name": "Inkoop / Billing loket",
+      "description": "Bestellingen, facturen, kostenplaats, procurement.",
+      "keywords": ["invoice", "factuur", "billing", "purchase", "po", "order", "kostenplaats", "procurement", "inkoop"]
+    },
+    {
+      "id": "CAT_OTHER",
+      "name": "Overig / Onbekend",
+      "description": "Onvoldoende info of valt buiten categorieën.",
+      "keywords": ["vraag", "help", "issue", "probleem", "onbekend"]
+    }
+  ]
+}
+

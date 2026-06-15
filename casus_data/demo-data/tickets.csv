@@ -1,0 +1,122 @@
+id,created_at,channel,language,requester_type,subject,body,assigned_queue
+T-0001,2026-04-08T08:12:00Z,email,nl,internal,"Kan niet inloggen op laptop na wachtwoord reset","Sinds vanochtend kan ik niet meer inloggen. MFA lijkt te hangen. Krijg foutcode AADSTS50076.",Q_IT_SERVICE_DESK
+T-0002,2026-04-08T08:19:00Z,email,nl,internal,"VPN valt steeds weg na 2 minuten","AnyConnect verbreekt de tunnel. Op Wi‑Fi thuis. Kunnen jullie checken of mijn account/cert goed staat?",Q_IT_SERVICE_DESK
+T-0003,2026-04-08T08:33:00Z,portal,nl,internal,"Outlook Copilot knop ontbreekt","In Outlook zie ik geen Copilot. Ik heb wel M365 licentie volgens mij. Waar kan ik dit aanzetten?",Q_IT_SERVICE_DESK
+T-0004,2026-04-08T08:41:00Z,email,en,internal,"GitHub Copilot: extension says 'Not authorized'","VS Code Copilot extension shows not authorized. I can sign in to GitHub. Do I have a seat?",Q_IT_SERVICE_DESK
+T-0005,2026-04-08T09:05:00Z,email,nl,internal,"Printer doet het niet op 3e verdieping","Ik krijg 'printer offline' bij HP-Laser-3F. Kunnen jullie de queue resetten?",Q_IT_SERVICE_DESK
+T-0006,2026-04-08T09:22:00Z,email,nl,internal,"Wi‑Fi 'CorpNet' connectie faalt","Laptop vraagt steeds opnieuw om wachtwoord. Andere collega’s hebben het ook.",Q_IT_SERVICE_DESK
+T-0007,2026-04-08T09:48:00Z,portal,nl,internal,"Nieuwe medewerker: onboarding toegang","Ik start maandag. Ik heb nog geen toegang tot HR portal en geen Teams account.",Q_IT_SERVICE_DESK
+T-0008,2026-04-08T10:03:00Z,email,nl,internal,"Factuur vraag (inkoop)","Kunnen jullie factuur INV-48392 op kostenplaats 4103 zetten? Mijn manager is cc.",Q_IT_SERVICE_DESK
+T-0009,2026-04-08T10:15:00Z,email,en,internal,"Laptop is very slow after last update","After Windows update, Teams and Outlook are extremely slow. Fans are loud.",Q_IT_SERVICE_DESK
+T-0010,2026-04-08T10:29:00Z,email,nl,internal,"Copilot in Teams: samenvatten meeting lukt niet","Copilot geeft 'policy blocked'. Is dit een instelling? Meeting was met externen.",Q_IT_SERVICE_DESK
+T-0011,2026-04-09T07:58:00Z,email,nl,internal,"Wachtwoord reset werkt niet (MFA)","Reset gedaan maar MFA app vraagt steeds om nieuwe registratie. Telefoonnummer 0612345678.",Q_IT_SERVICE_DESK
+T-0012,2026-04-09T08:10:00Z,email,nl,internal,"VPN: certificate expired","Krijg melding 'certificate expired' bij verbinden. Kan iemand dit vernieuwen?",Q_IT_SERVICE_DESK
+T-0013,2026-04-09T08:26:00Z,email,nl,internal,"GitHub Copilot seat aanvragen","Ik wil Copilot for GitHub gebruiken voor unit tests. Heb ik training nodig?",Q_DEVELOPER_EXPERIENCE
+T-0014,2026-04-09T08:40:00Z,portal,nl,internal,"Software install: Postman","Kan Postman geïnstalleerd worden via Company Portal? Ik heb geen admin rights.",Q_IT_SERVICE_DESK
+T-0015,2026-04-09T08:57:00Z,email,en,internal,"M365 Copilot: does it work with sensitive docs?","We have confidential documents. Is Copilot allowed? Any guidance/policy?",Q_IT_SERVICE_DESK
+T-0016,2026-04-09T09:14:00Z,email,nl,internal,"Printer scant niet naar mail","Scan-to-email faalt met SMTP error. Printer: Canon-2F.",Q_IT_SERVICE_DESK
+T-0017,2026-04-09T09:27:00Z,email,nl,internal,"Toegang tot SharePoint site ontbreekt","Ik krijg 'access denied' op Project-X site. Kunnen jullie rechten toevoegen?",Q_IT_SERVICE_DESK
+T-0018,2026-04-09T09:55:00Z,portal,nl,internal,"Teams kan niet aanmelden","Teams blijft op 'loading' hangen. Cache al geleegd.",Q_IT_SERVICE_DESK
+T-0019,2026-04-09T10:11:00Z,email,nl,internal,"HR vraag: verlof saldo klopt niet","Mijn verlofuren zijn ineens 0. Kunnen jullie dit corrigeren?",Q_IT_SERVICE_DESK
+T-0020,2026-04-09T10:34:00Z,email,nl,internal,"Wi‑Fi: DNS issues","Soms kan ik intranet niet openen. nslookup faalt. Op kantoor.",Q_IT_SERVICE_DESK
+T-0021,2026-04-10T08:06:00Z,email,nl,internal,"Copilot Outlook: wil automatisch antwoord voor verkeerd loket","Kunnen we mails die bij HR horen automatisch beantwoorden met doorverwijzing?",Q_M365
+T-0022,2026-04-10T08:21:00Z,portal,en,internal,"GitHub Copilot usage: license revoked?","Copilot stopped working. It says 'no subscription'. I used it last week.",Q_DEVELOPER_EXPERIENCE
+T-0023,2026-04-10T08:44:00Z,email,nl,internal,"Onboarding: geen laptop ontvangen","Ik start morgen, maar heb nog geen laptop of badge. Wie regelt dit?",Q_IT_SERVICE_DESK
+T-0024,2026-04-10T09:03:00Z,email,nl,internal,"Factuur: leverancier vraagt betalingstermijn","Leverancier mailt dat factuur te laat is betaald. Kunnen jullie finance benaderen?",Q_IT_SERVICE_DESK
+T-0025,2026-04-10T09:25:00Z,email,nl,internal,"VPN: split tunnel werkt niet","Na verbinden kan ik geen interne sites openen. Alleen internet werkt.",Q_NETWORK
+T-0026,2026-04-10T09:47:00Z,email,nl,internal,"Laptop: docking station detecteert monitor niet","Na sleep wordt mijn externe monitor niet meer herkend. Kabels al gewisseld.",Q_WORKPLACE
+T-0027,2026-04-10T10:12:00Z,email,nl,internal,"Account locked na te veel pogingen","Mijn account is locked. Krijg melding dat ik 30 min moet wachten.",Q_IDENTITY_ACCESS
+T-0028,2026-04-10T10:35:00Z,portal,nl,internal,"Copilot Teams: transcript samenvatting","Wil na meetings automatisch een korte samenvatting. Kan dat met Copilot?",Q_M365
+T-0029,2026-04-11T07:52:00Z,email,nl,internal,"Printer: driver update nodig","Nieuwe printer toegevoegd, maar driver ontbreekt. Kunnen jullie pushen?",Q_WORKPLACE
+T-0030,2026-04-11T08:09:00Z,email,en,internal,"Network: proxy authentication popups","Getting repeated proxy auth popups in browser. Happens after reconnect.",Q_NETWORK
+T-0031,2026-04-11T08:34:00Z,email,nl,internal,"GitHub Copilot: policy question","Mogen we Copilot gebruiken op klantcode? Hoe zit het met IP en security?",Q_DEVELOPER_EXPERIENCE
+T-0032,2026-04-11T09:01:00Z,portal,nl,internal,"Software install: Python","Ik heb Python 3.12 nodig voor een project. Kan dit via Company Portal?",Q_IT_SERVICE_DESK
+T-0033,2026-04-11T09:18:00Z,email,nl,internal,"MFA: nieuwe telefoon","Nieuwe telefoon. Kan MFA opnieuw gekoppeld worden? Oude is weg.",Q_IDENTITY_ACCESS
+T-0034,2026-04-11T09:49:00Z,email,nl,internal,"Onboarding: Teams channel toegang","Ik ben nieuw in team Alpha. Ik mis toegang tot Teams kanaal en SharePoint.",Q_IT_SERVICE_DESK
+T-0035,2026-04-11T10:07:00Z,email,nl,external,"Extern: kan geen uitnodiging accepteren","Ik kan de Teams invite niet accepteren. Krijg fout 'something went wrong'.",Q_IT_SERVICE_DESK
+T-0036,2026-04-12T09:03:00Z,email,nl,internal,"Copilot Outlook: mail categoriseren","Kunnen we Copilot gebruiken om helpdesk mails te categoriseren en Pareto te maken?",Q_M365
+T-0037,2026-04-12T09:15:00Z,email,nl,internal,"Wi‑Fi: guest netwerk nodig","Voor training hebben we gast Wi‑Fi nodig voor 20 bezoekers. Kan dat geregeld?",Q_IT_SERVICE_DESK
+T-0038,2026-04-12T09:44:00Z,email,nl,internal,"Finance: PO aanmaken","Ik moet een purchase order aanmaken voor software. Waar kan ik dat doen?",Q_IT_SERVICE_DESK
+T-0039,2026-04-12T10:02:00Z,email,en,internal,"Device: battery drains fast","Battery drains from 100% to 20% in 1 hour after recent BIOS update.",Q_WORKPLACE
+T-0040,2026-04-12T10:27:00Z,portal,nl,internal,"GitHub Copilot: seat aanvraag urgent","Ik start morgen op project. Kan seat vandaag nog? Mijn ID: E1012.",Q_DEVELOPER_EXPERIENCE
+T-0041,2026-04-13T08:11:00Z,email,nl,internal,"Printer: scan naar SharePoint","We willen scans automatisch naar SharePoint map zetten i.p.v. mail.",Q_PRINTER
+T-0042,2026-04-13T08:29:00Z,email,nl,internal,"VPN: werkt niet op hotel wifi","VPN connect niet op hotel Wi‑Fi. Mogelijk poorten geblokkeerd.",Q_NETWORK
+T-0043,2026-04-13T08:50:00Z,email,nl,internal,"Account: toegang tot repo ontbreekt","Ik kan niet bij GitHub repo org. Krijg 404. Kan iemand mij toevoegen?",Q_IDENTITY_ACCESS
+T-0044,2026-04-13T09:17:00Z,email,en,internal,"M365 Copilot: summarize Word doc fails","Copilot says it can't access the document due to permissions.",Q_M365
+T-0045,2026-04-13T09:33:00Z,portal,nl,internal,"Software: Intune portal werkt niet","Company Portal crasht bij openen. Kan ik Intune opnieuw installeren?",Q_IT_SERVICE_DESK
+T-0046,2026-04-13T10:05:00Z,email,nl,internal,"HR: declaratie afgewezen","Mijn declaratie is afgewezen. Wat is de reden? Ticket bij IT aangemaakt per ongeluk.",Q_IT_SERVICE_DESK
+T-0047,2026-04-14T08:03:00Z,email,nl,internal,"Copilot: security vraag over prompts","Mag ik in prompts klantdata plakken? Wat zijn de do's/don'ts?",Q_M365
+T-0048,2026-04-14T08:32:00Z,email,nl,internal,"Wi‑Fi: IP conflict","Krijg melding IP address conflict. Daarna geen verbinding.",Q_NETWORK
+T-0049,2026-04-14T09:02:00Z,email,nl,internal,"Laptop: toetsenbord werkt soms niet","Random keys reageren niet. Reboot helpt tijdelijk.",Q_WORKPLACE
+T-0050,2026-04-14T09:40:00Z,email,en,internal,"GitHub Copilot: admin request","Need Copilot enabled for org. Who approves? Also need policy link.",Q_DEVELOPER_EXPERIENCE
+T-0051,2026-04-15T08:08:00Z,portal,nl,internal,"Account: mailbox access","Ik heb toegang nodig tot shared mailbox support@. Wie kan dit geven?",Q_IT_SERVICE_DESK
+T-0052,2026-04-15T08:26:00Z,email,nl,internal,"Printer: 'spooler' error","Print jobs stuck in queue. Spooler error code 0x0000007a.",Q_IT_SERVICE_DESK
+T-0053,2026-04-15T08:55:00Z,email,nl,internal,"Finance: factuur adres wijzigen","Kunnen jullie het factuuradres aanpassen? IT ticket waarschijnlijk verkeerd.",Q_IT_SERVICE_DESK
+T-0054,2026-04-15T09:13:00Z,email,nl,internal,"MFA: sms komt niet binnen","SMS code komt niet. Nummer is +31612345678. Kan MFA naar app?",Q_IDENTITY_ACCESS
+T-0055,2026-04-15T09:37:00Z,email,en,internal,"Network: can't resolve internal hostnames","Internal hostnames don't resolve, external works. Possibly DNS.",Q_NETWORK
+T-0056,2026-04-15T10:01:00Z,portal,nl,internal,"M365 Copilot: enable request","Ik hoor dat Copilot in Word beschikbaar is. Hoe krijg ik dat?",Q_M365
+T-0057,2026-04-16T08:06:00Z,email,nl,internal,"Onboarding: accounts nog niet actief","Nieuwe collega kan niet inloggen. Start vandaag. Naam: 'Pim'.",Q_IT_SERVICE_DESK
+T-0058,2026-04-16T08:42:00Z,email,nl,internal,"GitHub Copilot: last activity check","Kunnen jullie checken wie Copilot niet gebruikt en licenties intrekken?",Q_DEVELOPER_EXPERIENCE
+T-0059,2026-04-16T09:05:00Z,email,nl,internal,"Copilot Outlook: auto antwoord loket HR","We krijgen veel HR vragen in IT mailbox. Kunnen we auto reply met HR link?",Q_M365
+T-0060,2026-04-16T09:31:00Z,portal,en,internal,"Device: webcam not working","Camera not detected in Teams. Driver maybe missing.",Q_WORKPLACE
+T-0061,2026-04-17T08:11:00Z,email,nl,internal,"VPN: MFA prompt loop","Bij VPN moet ik MFA doen, maar daarna vraagt hij opnieuw. Loop.",Q_NETWORK
+T-0062,2026-04-17T08:37:00Z,email,nl,internal,"Account: rechten op Teams kanaal","Ik mis rechten op Teams kanaal 'Project-Y'. Kan dit toegevoegd worden?",Q_IDENTITY_ACCESS
+T-0063,2026-04-17T09:00:00Z,email,nl,internal,"Printer: print naar verkeerde printer","Standaard printer springt steeds terug naar PDF. Hoe fix ik dit?",Q_PRINTER
+T-0064,2026-04-17T09:18:00Z,email,en,internal,"M365 Copilot: data retention question","Does Copilot store our prompts? Need guidance for compliance.",Q_M365
+T-0065,2026-04-17T09:44:00Z,portal,nl,internal,"Software: Docker Desktop update","Docker Desktop update faalt door rechten. Kan IT dit pushen?",Q_IT_SERVICE_DESK
+T-0066,2026-04-17T10:05:00Z,email,nl,internal,"Finance: kostenplaats wijziging","Ik heb verkeerde kostenplaats gebruikt in PO. Hoe pas ik dit aan?",Q_IT_SERVICE_DESK
+T-0067,2026-04-18T09:22:00Z,email,nl,internal,"Copilot: categorieën voor helpdesk","Welke categorieën zijn logisch voor helpdesk mails? We willen Pareto top 10.",Q_M365
+T-0068,2026-04-18T09:51:00Z,email,nl,internal,"Wi‑Fi: captive portal issues","Wi‑Fi verbindt maar internet werkt niet, captive portal komt niet.",Q_NETWORK
+T-0069,2026-04-18T10:17:00Z,email,en,external,"External: cannot join Teams meeting","The join link opens browser but fails with error. Please advise.",Q_IT_SERVICE_DESK
+T-0070,2026-04-18T10:45:00Z,portal,nl,internal,"HR: loonstrook downloaden lukt niet","HR portal geeft error bij downloaden loonstrook. Per ongeluk bij IT ingeschoten.",Q_IT_SERVICE_DESK
+T-0071,2026-04-21T08:01:00Z,email,nl,internal,"Laptop: BitLocker recovery key nodig","Laptop vraagt BitLocker key na update. Kan iemand helpen? ID: 5F2A-ABCD.",Q_IT_SERVICE_DESK
+T-0072,2026-04-21T08:18:00Z,email,en,internal,"GitHub Copilot: can't access org policy","Where can I find the Copilot usage policy? Need link.",Q_DEVELOPER_EXPERIENCE
+T-0073,2026-04-21T08:39:00Z,email,nl,internal,"M365 Copilot: meeting recap met externen","Copilot meeting recap werkt niet bij externe deelnemers. Is dat policy?",Q_M365
+T-0074,2026-04-21T09:10:00Z,portal,nl,internal,"Software: Visual Studio license","Ik heb Visual Studio nodig. Is dit via inkoop of IT?",Q_IT_SERVICE_DESK
+T-0075,2026-04-21T09:33:00Z,email,nl,internal,"Account: gast toevoegen aan Teams","Ik wil een externe gast toevoegen aan Teams. Krijg policy error.",Q_M365
+T-0076,2026-04-21T09:59:00Z,email,nl,internal,"Network: packet loss in office","Video calls stutter. Suspect packet loss on floor 2.",Q_NETWORK
+T-0077,2026-04-21T10:24:00Z,email,en,internal,"Printer: cannot find printer on new laptop","New laptop can't find printer queue. Needs mapping?",Q_PRINTER
+T-0078,2026-04-22T08:07:00Z,email,nl,internal,"Copilot GitHub: seat toewijzen na training","Kunnen jullie checken of ik training heb gevolgd en seat toewijzen? E1008",Q_DEVELOPER_EXPERIENCE
+T-0079,2026-04-22T08:29:00Z,portal,nl,internal,"HR: contract verlenging","Wie kan contract verlengen? Dit hoort niet bij IT, maar ik weet loket niet.",Q_IT_SERVICE_DESK
+T-0080,2026-04-22T08:54:00Z,email,nl,internal,"Wi‑Fi: 802.1x certificaat fout","Krijg melding dat certificaat niet vertrouwd is op CorpNet.",Q_NETWORK
+T-0081,2026-04-22T09:15:00Z,email,en,internal,"Device: microphone not working in Teams","Mic doesn't work in Teams but works elsewhere. Permissions?",Q_WORKPLACE
+T-0082,2026-04-22T09:43:00Z,email,nl,internal,"Finance: factuur upload portal","Waar upload ik een factuur in het portal? IT krijgt dit vaak binnen.",Q_IT_SERVICE_DESK
+T-0083,2026-04-22T10:02:00Z,email,nl,internal,"Copilot Outlook: concept antwoord op HR vragen","Veel mails over verlof en loonstroken komen bij IT. Wil auto reply met HR loket link.",Q_M365
+T-0084,2026-04-23T08:04:00Z,portal,nl,internal,"Account: user toegevoegd maar geen rechten","Ik ben toegevoegd aan SharePoint maar zie nog niks. Cache? Rechten?",Q_IDENTITY_ACCESS
+T-0085,2026-04-23T08:26:00Z,email,nl,internal,"VPN: werkt niet na wachtwoord wijziging","Na password change kan ik niet meer verbinden. Krijg 'authentication failed'.",Q_NETWORK
+T-0086,2026-04-23T08:57:00Z,email,en,internal,"M365 Copilot: prompt got blocked","Copilot says 'Your prompt violated policy' but it's just meeting notes.",Q_M365
+T-0087,2026-04-23T09:20:00Z,email,nl,internal,"GitHub Copilot: usage report nodig","We willen maandelijks overzicht: wie gebruikt Copilot, last sign-in, seats.",Q_DEVELOPER_EXPERIENCE
+T-0088,2026-04-23T09:44:00Z,email,nl,internal,"Laptop: fan noise + overheat","Laptop wordt heet bij Teams calls. Ventilator draait constant.",Q_WORKPLACE
+T-0089,2026-04-23T10:15:00Z,email,nl,internal,"Printer: print quality slecht","Print is vaag/strepen. Toner? Kan iemand kijken naar onderhoud?",Q_PRINTER
+T-0090,2026-04-24T08:02:00Z,email,nl,internal,"HR: declaratie systeem login","Kan niet inloggen in declaratie systeem. Dit is HR loket denk ik.",Q_IT_SERVICE_DESK
+T-0091,2026-04-24T08:21:00Z,email,en,internal,"Network: can't access intranet via VPN","VPN connects but intranet times out. External internet works.",Q_NETWORK
+T-0092,2026-04-24T08:49:00Z,portal,nl,internal,"Software: npm registry access","Ik kan packages niet installeren, krijg 403. Proxy? Access?",Q_NETWORK
+T-0093,2026-04-24T09:13:00Z,email,nl,internal,"Account: shared mailbox permissions","Ik moet rechten krijgen op finance@ mailbox. Kan dit aangevraagd worden?",Q_IDENTITY_ACCESS
+T-0094,2026-04-24T09:37:00Z,email,nl,internal,"Copilot GitHub: compliance vraag","Mag Copilot code suggesties opslaan? Hoe zit het met data retention?",Q_DEVELOPER_EXPERIENCE
+T-0095,2026-04-24T10:05:00Z,email,nl,internal,"M365 Copilot: beschikbaarheid per user","Kunnen we zien wie Copilot heeft en wie niet? Overzicht/licenties.",Q_M365
+T-0096,2026-04-25T08:09:00Z,email,nl,internal,"Wi‑Fi: traag op floor 1","Wi‑Fi is traag sinds gisteren. Speedtest 2 Mbps. Andere netwerken ok.",Q_NETWORK
+T-0097,2026-04-25T08:33:00Z,email,en,internal,"Device: cannot connect second monitor","Second monitor not detected. Dock firmware updated?",Q_WORKPLACE
+T-0098,2026-04-25T08:56:00Z,portal,nl,internal,"Finance: factuur goedkeuren","Waar kan ik een factuur goedkeuren? Dit komt steeds bij IT binnen.",Q_IT_SERVICE_DESK
+T-0099,2026-04-25T09:21:00Z,email,nl,internal,"Copilot Outlook: pareto per week","Kunnen we wekelijks automatisch een Pareto rapport sturen van top vragen?",Q_M365
+T-0100,2026-04-25T09:44:00Z,email,nl,internal,"Account: MFA reset nodig (PII test)","Mijn BSN 123456789 staat in HR, maar MFA werkt niet. Kunnen jullie resetten?",Q_IT_SERVICE_DESK
+T-0101,2026-04-28T08:04:00Z,email,nl,internal,"GitHub Copilot: aanvraag zonder training","Ik wil Copilot, maar heb training nog niet gedaan. Kan ik toch al seat?",Q_DEVELOPER_EXPERIENCE
+T-0102,2026-04-28T08:16:00Z,portal,nl,internal,"M365 Copilot: policy blocked met externe mails","Copilot weigert mail te samenvatten als er externe deelnemers zijn.",Q_M365
+T-0103,2026-04-28T08:42:00Z,email,en,internal,"Printer: scanning error 0x12","Scanner fails with error 0x12. Needs driver?",Q_PRINTER
+T-0104,2026-04-28T09:07:00Z,email,nl,internal,"VPN: geen verbinding op mobiel hotspot","VPN werkt niet op hotspot. Op Wi‑Fi thuis wel.",Q_NETWORK
+T-0105,2026-04-28T09:33:00Z,email,nl,internal,"Software install: Azure CLI","Ik heb Azure CLI nodig. Kan dit via Company Portal?",Q_IT_SERVICE_DESK
+T-0106,2026-04-28T10:03:00Z,email,nl,internal,"HR: loonstrook mailt niet","Loonstrook notificaties komen niet binnen. Kan HR dit checken?",Q_IT_SERVICE_DESK
+T-0107,2026-04-28T10:27:00Z,email,nl,internal,"Network: proxy blocks GitHub","GitHub.com wordt geblokkeerd door proxy policy. Voor dev team nodig.",Q_NETWORK
+T-0108,2026-04-28T10:49:00Z,portal,en,internal,"M365 Copilot: generate meeting minutes","Need a template for meeting minutes + auto summary after call.",Q_M365
+T-0109,2026-04-29T08:06:00Z,email,nl,internal,"Account: toegang tot Finance SharePoint","Ik moet bij Finance SharePoint voor facturen. Krijg geen toegang.",Q_IDENTITY_ACCESS
+T-0110,2026-04-29T08:30:00Z,email,nl,internal,"Device: toetsenbord layout veranderd","Mijn keyboard layout switched naar US. Hoe terug naar NL?",Q_WORKPLACE
+T-0111,2026-04-29T08:58:00Z,email,nl,internal,"GitHub Copilot: last sign-in overzicht","Kunnen we lijst maken met 'last sign-in' zodat ongebruikte seats eruit kunnen?",Q_DEVELOPER_EXPERIENCE
+T-0112,2026-04-29T09:17:00Z,email,en,internal,"M365 Copilot: where are logs/audit?","Need to know how Copilot actions are audited.",Q_M365
+T-0113,2026-04-29T09:41:00Z,portal,nl,internal,"Wi‑Fi: device keeps disconnecting","Wi‑Fi disconnects every 5 minutes on my laptop only.",Q_NETWORK
+T-0114,2026-04-29T10:09:00Z,email,nl,internal,"Finance: kostenplaats 4103 wijzigen","Ticket per ongeluk naar IT. Dit hoort bij Finance/Inkoop.",Q_IT_SERVICE_DESK
+T-0115,2026-04-30T08:02:00Z,email,nl,internal,"Copilot Outlook: auto reply voor Finance loket","Veel factuurvragen komen in IT mailbox. Kunnen we auto reply sturen naar Finance?",Q_M365
+T-0116,2026-04-30T08:28:00Z,email,en,internal,"GitHub Copilot: can't sign in from JetBrains","JetBrains plugin can't sign in. Browser auth loops.",Q_DEVELOPER_EXPERIENCE
+T-0117,2026-04-30T08:46:00Z,portal,nl,internal,"Software: Teams update faalt","Teams update blijft hangen op 50%. Kan dit gefixt?",Q_IT_SERVICE_DESK
+T-0118,2026-04-30T09:13:00Z,email,nl,internal,"Printer: queue mapping ontbreekt","Nieuwe collega kan printer queue niet vinden. Welke mapping nodig?",Q_PRINTER
+T-0119,2026-04-30T09:39:00Z,email,nl,internal,"Account: groepen / rechten aanpassen","Kan ik lid worden van 'DevOps' groep? Nodig voor repo access.",Q_IDENTITY_ACCESS
+T-0120,2026-04-30T10:05:00Z,email,nl,internal,"VPN: split tunnel policy","Is split tunnel toegestaan? VPN performance is slecht zonder.",Q_NETWORK
+

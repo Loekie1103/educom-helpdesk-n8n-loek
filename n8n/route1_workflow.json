@@ -1,0 +1,106 @@
+{
+  "name": "Helpdesk Casus – Route 1 (HTTP CSV)",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [50, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/Loekie1103/educom-helpdesk-n8n-loek/main/tickets.csv",
+        "method": "GET",
+        "responseFormat": "file",
+        "options": {
+          "ignoreSSLIssues": true
+        }
+      },
+      "name": "HTTP Request - Get tickets.csv",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "data",
+        "fileFormat": "csv",
+        "options": {
+          "fromBinary": true,
+          "headerRow": true,
+          "delimiter": ",",
+          "encoding": "UTF-8"
+        }
+      },
+      "name": "Parse CSV",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "/**\n+ * Redact PII, assign category, confidence, route, and draft reply.\n+ * This simple implementation uses keyword matching from categories.json.\n+ */\n+const categories = [\n+  { id: 'CAT_ACCESS_ACCOUNT', keywords: ['password','wachtwoord','mfa','2fa','login','inloggen','access','toegang','permissions','rechten'] },\n+  { id: 'CAT_M365_COPILOT', keywords: ['m365 copilot','copilot outlook','copilot word','copilot teams','prompt','copilot policy','copilot licentie m365'] },\n+  { id: 'CAT_GH_COPILOT', keywords: ['github copilot','copilot for github','copilot seat','copilot license','copilot extension','vs code copilot','jetbrains copilot'] },\n+  { id: 'CAT_SOFTWARE_INSTALL', keywords: ['install','installer','update','msi','pkg','admin rights','permissions','intune','company portal'] },\n+  { id: 'CAT_VPN_REMOTE', keywords: ['vpn','remote','citrix','anyconnect','tunnel','certificate','certificaat','timeout'] },\n+  { id: 'CAT_NETWORK_WIFI', keywords: ['wifi','wi-fi','lan','dns','proxy','network','verbinding','connectivity','dhcp','ip address'] },\n+  { id: 'CAT_HARDWARE_DEVICE', keywords: ['laptop','dock','docking','battery','keyboard','touchpad','monitor','slow','performance','overheat'] },\n+  { id: 'CAT_PRINTER', keywords: ['printer','print','scan','scanner','driver','queue','spooler','toner'] },\n+  { id: 'CAT_ONBOARDING_HR', keywords: ['onboarding','new hire','contract','declaratie','hr','payroll','vacation','verlof','hr portal'] },\n+  { id: 'CAT_PROCUREMENT_BILLING', keywords: ['invoice','factuur','billing','purchase','po','order','kostenplaats','procurement','inkoop'] },\n+  { id: 'CAT_OTHER', keywords: [] }\n+];\n+\n+function redact(text) {\n+  // Simple regex redaction for email and phone numbers\n+  let redacted = text.replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, '[REDACTED EMAIL]');\n+  redacted = redacted.replace(/\b\d{10,}\b/g, '[REDACTED PHONE]');\n+  return redacted;\n}\n+\n+function assignCategory(subject, description) {\n+  const content = (subject + ' ' + description).toLowerCase();\n+  let best = { id: 'CAT_OTHER', score: 0 };\n+  for (const cat of categories) {\n+    let matches = 0;\n+    for (const kw of cat.keywords) {\n+      if (content.includes(kw.toLowerCase())) matches++;\n+    }\n+    const score = matches / (cat.keywords.length || 1);\n+    if (score > best.score) {\n+      best = { id: cat.id, score };
+    }\n+  }\n+  return best;\n}\n+\n+return items.map(item => {\n+  const ticket = item.json;\n+  // Redact PII in description/body fields if present\n+  if (ticket.body) ticket.body = redact(ticket.body);\n+  if (ticket.description) ticket.description = redact(ticket.description);
+  // Category assignment\n+  const { id: category, score } = assignCategory(ticket.subject || '', ticket.body || ticket.description || '');\n+  const confidence = Math.round(score * 100) / 100; // 0-1\n+  // Simple route decision – if confidence low, route to "manual" queue\n+  const route_to = confidence < 0.4 ? 'manual' : 'auto';\n+  const route_reason = confidence < 0.4 ? 'Low confidence, needs manual review' : 'Automated routing based on keyword match';\n+  // Draft reply for routed tickets (only for auto route)\n+  const draft_reply = route_to === 'auto' ? `We have identified your request as ${category}. Our team will handle it shortly.` : '';
+  return { json: { ...ticket, category, confidence, route_to, route_reason, draft_reply } };
+});"
+      },
+      "name": "Function - Process Ticket",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "fileName": "processed_tickets.json",
+        "dataPropertyName": "json",
+        "options": {
+          "format": "json"
+        }
+      },
+      "name": "Write Output",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Get tickets.csv",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Get tickets.csv": {
+      "main": [
+        [
+          {
+            "node": "Parse CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse CSV": {
+      "main": [
+        [
+          {
+            "node": "Set - First ticket preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "id": "1"
+}

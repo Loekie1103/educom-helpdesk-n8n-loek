@@ -1,0 +1,38 @@
+{
+  "user_id": "loekd",
+  "last_updated": "2026-06-11T09:29:00Z",
+  "communication_preferences": {
+    "style": "technical_direct",
+    "detail_level": "comprehensive",
+    "examples_preferred": true,
+    "step_by_step_breakdown": true,
+    "markdown_formatting": true
+  },
+  "technical_preferences": {
+    "preferred_tools": ["execute_command", "read_file", "write_to_file", "replace_in_file"],
+    "avoided_tools": [],
+    "preferred_file_formats": ["json", "md", "txt"],
+    "coding_style": "clear_comments_structured"
+  },
+  "project_context": {
+    "current_project": "n8n_helpdesk_casus",
+    "current_stage": "planning_roadmap_creation",
+    "project_type": "educational_exercise",
+    "domain": "workflow_automation_ai_triage"
+  },
+  "feedback_history": [
+    {
+      "timestamp": "2026-06-11T09:27:00Z",
+      "interaction": "roadmap_creation",
+      "feedback": "Very nice thanks",
+      "type": "positive",
+      "learned_preference": "appreciates_comprehensive_roadmaps_with_checkboxes"
+    }
+  ],
+  "learning_patterns": {
+    "prefers_structured_approaches": true,
+    "values_clear_progress_tracking": true,
+    "appreciates_technical_detailing": true,
+    "likes_step_by_step_breakdowns": true
+  }
+}

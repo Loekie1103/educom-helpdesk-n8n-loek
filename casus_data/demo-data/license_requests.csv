@@ -1,0 +1,11 @@
+request_id,requested_at,employee_id,full_name,email,team,requested_product,justification,manager_email,status
+LR-0001,2026-04-28T09:10:00Z,E1002,Sam de Vries,sam.devries@demo.example,Backend,GitHub Copilot,"Sneller boilerplate en tests schrijven",lead.backend@demo.example,submitted
+LR-0002,2026-04-28T10:22:00Z,E1013,Iris van Loon,iris.vanloon@demo.example,Frontend,GitHub Copilot,"Helpt bij UI component scaffolding",lead.frontend@demo.example,submitted
+LR-0003,2026-04-29T08:05:00Z,E1006,Jayden Smit,jayden.smit@demo.example,Platform,GitHub Copilot,"Ondersteuning bij Terraform modules",lead.platform@demo.example,submitted
+LR-0004,2026-04-29T13:40:00Z,E1014,Olivia Hendriks,olivia.hendriks@demo.example,QA,GitHub Copilot,"Test cases genereren en refactor hulp",lead.qa@demo.example,submitted
+LR-0005,2026-04-30T07:55:00Z,E1001,Noa Jansen,noa.jansen@demo.example,Support,M365 Copilot,"Outlook/Teams samenvattingen en replies",lead.support@demo.example,submitted
+LR-0006,2026-04-30T11:15:00Z,E1015,Thijs Meijer,thijs.meijer@demo.example,Finance,M365 Copilot,"Excel analyse en rapportage versnellen",lead.finance@demo.example,submitted
+LR-0007,2026-05-01T09:30:00Z,E1009,Tess Kuipers,tess.kuipers@demo.example,HR,M365 Copilot,"Onboarding teksten en beleid samenvatten",lead.hr@demo.example,submitted
+LR-0008,2026-05-02T12:10:00Z,E1003,Lina Bakker,lina.bakker@demo.example,Backend,GitHub Copilot,"Sneller code reviews voorbereiden",lead.backend@demo.example,submitted
+LR-0009,2026-05-03T15:45:00Z,E1016,Roos van den Berg,roos.vdberg@demo.example,Data,M365 Copilot,"PowerPoint/Word drafts en data storytelling",lead.data@demo.example,submitted
+LR-0010,2026-05-04T08:20:00Z,E1011,Mila Kok,mila.kok@demo.example,Platform,GitHub Copilot,"Sneller incident runbooks en scripts",lead.platform@demo.example,submitted

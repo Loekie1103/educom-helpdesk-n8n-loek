@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "queues": [
+    {
+      "id": "Q_IT_SERVICE_DESK",
+      "name": "IT Service Desk",
+      "description": "Algemene IT helpdesk intake."
+    },
+    {
+      "id": "Q_IDENTITY_ACCESS",
+      "name": "Identity & Access",
+      "description": "Toegang, rechten, MFA, accounts."
+    },
+    {
+      "id": "Q_NETWORK",
+      "name": "Network Team",
+      "description": "Wi‑Fi, VPN, netwerk, DNS/proxy."
+    },
+    {
+      "id": "Q_WORKPLACE",
+      "name": "Workplace / Devices",
+      "description": "Laptops, hardware, drivers, performance."
+    },
+    {
+      "id": "Q_M365",
+      "name": "M365 / Collaboration",
+      "description": "Outlook/Teams/Word, M365 Copilot topics."
+    },
+    {
+      "id": "Q_DEVELOPER_EXPERIENCE",
+      "name": "Developer Experience",
+      "description": "GitHub Copilot, dev tooling, IDE plugins."
+    },
+    {
+      "id": "Q_HR",
+      "name": "HR Loket",
+      "description": "Onboarding/contract/verlof/declaraties."
+    },
+    {
+      "id": "Q_FINANCE_PROCUREMENT",
+      "name": "Finance / Inkoop",
+      "description": "Facturen, bestellingen, kostenplaats."
+    }
+  ]
+}
+

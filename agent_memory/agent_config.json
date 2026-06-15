@@ -1,0 +1,16 @@
+{
+  "system_name": "Cline Agent Memory System",
+  "version": "1.0.0",
+  "created_at": "2026-06-11T09:29:00Z",
+  "description": "Comprehensive memory system for tracking user interactions, preferences, task progress, and learned skills",
+  "structure": {
+    "user_preferences": "agent_memory/user_preferences.json",
+    "task_progress": "agent_memory/task_progress.json",
+    "interaction_log": "agent_memory/interaction_log.md",
+    "skills_directory": "agent_memory/skills/",
+    "learning_patterns": "agent_memory/learning_patterns.json"
+  },
+  "update_frequency": "after_each_interaction",
+  "data_retention": "persistent",
+  "auto_update_enabled": true
+}
