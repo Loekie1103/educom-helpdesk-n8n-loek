@@ -50,13 +50,13 @@ Create an n8n workflow in shadow mode for helpdesk ticket triage and Pareto anal
 
 ### Day 2: Intake, Redaction, and Triage Implementation
 - [x] Implement P1 Intake: Create n8n workflow nodes to read tickets.csv
-- [ ] Implement P2 Redaction: Add PII redaction nodes before logging/storing
-- [ ] Implement P3 Triage: Create logic to categorize tickets using categories.json
-- [ ] Implement confidence scoring mechanism (0-1 or low/med/high)
-- [ ] Implement route_to assignment using queues.json (optional)
-- [ ] Generate route_reason (1-2 sentences)
-- [ ] Implement P4 Concept answer: Generate draft_reply for routed tickets
-- [ ] Set up output writing for processed tickets
+- [x] Implement P2 Redaction: Add PII redaction nodes before logging/storing (including Excel date formatting)
+- [x] Implement P3 Triage: Create logic to categorize tickets using categories.json
+- [x] Implement confidence scoring mechanism (0-1 or low/med/high)
+- [x] Implement route_to assignment using queues.json (optional)
+- [x] Generate route_reason (1-2 sentences)
+- [x] Implement P4 Concept answer: Generate draft_reply for routed tickets
+- [x] Set up output writing for processed tickets
 
 ### Day 3: Pareto Analysis and Reporting
 - [ ] Implement P5 Pareto: Calculate top categories with counts and percentages

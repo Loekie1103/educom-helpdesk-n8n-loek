@@ -50,7 +50,7 @@
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P2: PII Redaction\n * Redacts email addresses, Dutch phone numbers, and BSN-like patterns (9 digits) from ticket body and subject.\n */\nreturn items.map(item => {\n  let body = item.json.body || '';\n  let subject = item.json.subject || '';\n\n  // Regex for emails\n  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n  // Regex for Dutch phone numbers (e.g. 06-12345678, +31 6 12345678, 0101234567)\n  const phoneRegex = /(?:\\+31|0)(?:\\s?\\d){9}/g;\n  // Regex for BSN-like 9 digit strings\n  const bsnRegex = /\\b\\d{9}\\b/g;\n\n  body = body.replace(emailRegex, '[EMAIL_REDACTED]');\n  body = body.replace(phoneRegex, '[PHONE_REDACTED]');\n  body = body.replace(bsnRegex, '[BSN_REDACTED]');\n\n  subject = subject.replace(emailRegex, '[EMAIL_REDACTED]');\n  subject = subject.replace(phoneRegex, '[PHONE_REDACTED]');\n  subject = subject.replace(bsnRegex, '[BSN_REDACTED]');\n\n  return {\n    json: {\n      ...item.json,\n      body,\n      subject\n    }\n  };\n});"
+        "jsCode": "/**\n * P2: PII Redaction & Date Formatting\n * Redacts PII and converts Excel decimal/serial date formats into clean ISO dates.\n */\nfunction excelDateToISO(serial) {\n  const num = parseFloat(serial);\n  if (isNaN(num)) return serial;\n  const excelEpoch = new Date(1899, 11, 30);\n  const days = Math.floor(num);\n  const ms = Math.round((num - days) * 24 * 60 * 60 * 1000);\n  const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000 + ms);\n  return date.toISOString().replace('T', ' ').substring(0, 19);\n}\n\nreturn items.map(item => {\n  let body = item.json.body || '';\n  let subject = item.json.subject || '';\n  let created_at = item.json.created_at || '';\n\n  // Convert date if it is an Excel serial format\n  if (created_at && !isNaN(parseFloat(created_at))) {\n    created_at = excelDateToISO(created_at);\n  }\n\n  // Regex for emails\n  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n  // Regex for Dutch phone numbers (e.g. 06-12345678, +31 6 12345678)\n  const phoneRegex = /(?:\\+31|0)(?:\\s?\\d){9}/g;\n  // Regex for BSN-like 9 digit strings\n  const bsnRegex = /\\b\\d{9}\\b/g;\n\n  body = body.replace(emailRegex, '[EMAIL_REDACTED]');\n  body = body.replace(phoneRegex, '[PHONE_REDACTED]');\n  body = body.replace(bsnRegex, '[BSN_REDACTED]');\n\n  subject = subject.replace(emailRegex, '[EMAIL_REDACTED]');\n  subject = subject.replace(phoneRegex, '[PHONE_REDACTED]');\n  subject = subject.replace(bsnRegex, '[BSN_REDACTED]');\n\n  return {\n    json: {\n      ...item.json,\n      created_at,\n      body,\n      subject\n    }\n  };\n});"
       },
       "name": "P2 - Redact PII",
       "type": "n8n-nodes-base.code",
@@ -87,6 +87,10 @@
             {
               "name": "firstTicketRoute",
               "value": "={{$json[0].route_to}}"
+            },
+            {
+              "name": "firstTicketDate",
+              "value": "={{$json[0].created_at}}"
             }
           ]
         }
