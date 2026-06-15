@@ -7,11 +7,14 @@
       "name": "Start",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [50, 300]
+      "position": [
+        50,
+        300
+      ]
     },
     {
       "parameters": {
-        "url": "https://raw.githubusercontent.com/Loekie1103/educom-helpdesk-n8n-loek/main/tickets.csv",
+        "url": "https://raw.githubusercontent.com/Loekie1103/educom-helpdesk-n8n-loek/main/casus_data/demo-data/tickets.csv",
         "method": "GET",
         "responseFormat": "file",
         "options": {
@@ -21,7 +24,10 @@
       "name": "HTTP Request - Get tickets.csv",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
-      "position": [250, 300]
+      "position": [
+        250,
+        300
+      ]
     },
     {
       "parameters": {
@@ -37,33 +43,61 @@
       "name": "Parse CSV",
       "type": "n8n-nodes-base.spreadsheetFile",
       "typeVersion": 1,
-      "position": [450, 300]
+      "position": [
+        450,
+        300
+      ]
     },
     {
       "parameters": {
-        "functionCode": "/**\n+ * Redact PII, assign category, confidence, route, and draft reply.\n+ * This simple implementation uses keyword matching from categories.json.\n+ */\n+const categories = [\n+  { id: 'CAT_ACCESS_ACCOUNT', keywords: ['password','wachtwoord','mfa','2fa','login','inloggen','access','toegang','permissions','rechten'] },\n+  { id: 'CAT_M365_COPILOT', keywords: ['m365 copilot','copilot outlook','copilot word','copilot teams','prompt','copilot policy','copilot licentie m365'] },\n+  { id: 'CAT_GH_COPILOT', keywords: ['github copilot','copilot for github','copilot seat','copilot license','copilot extension','vs code copilot','jetbrains copilot'] },\n+  { id: 'CAT_SOFTWARE_INSTALL', keywords: ['install','installer','update','msi','pkg','admin rights','permissions','intune','company portal'] },\n+  { id: 'CAT_VPN_REMOTE', keywords: ['vpn','remote','citrix','anyconnect','tunnel','certificate','certificaat','timeout'] },\n+  { id: 'CAT_NETWORK_WIFI', keywords: ['wifi','wi-fi','lan','dns','proxy','network','verbinding','connectivity','dhcp','ip address'] },\n+  { id: 'CAT_HARDWARE_DEVICE', keywords: ['laptop','dock','docking','battery','keyboard','touchpad','monitor','slow','performance','overheat'] },\n+  { id: 'CAT_PRINTER', keywords: ['printer','print','scan','scanner','driver','queue','spooler','toner'] },\n+  { id: 'CAT_ONBOARDING_HR', keywords: ['onboarding','new hire','contract','declaratie','hr','payroll','vacation','verlof','hr portal'] },\n+  { id: 'CAT_PROCUREMENT_BILLING', keywords: ['invoice','factuur','billing','purchase','po','order','kostenplaats','procurement','inkoop'] },\n+  { id: 'CAT_OTHER', keywords: [] }\n+];\n+\n+function redact(text) {\n+  // Simple regex redaction for email and phone numbers\n+  let redacted = text.replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, '[REDACTED EMAIL]');\n+  redacted = redacted.replace(/\b\d{10,}\b/g, '[REDACTED PHONE]');\n+  return redacted;\n}\n+\n+function assignCategory(subject, description) {\n+  const content = (subject + ' ' + description).toLowerCase();\n+  let best = { id: 'CAT_OTHER', score: 0 };\n+  for (const cat of categories) {\n+    let matches = 0;\n+    for (const kw of cat.keywords) {\n+      if (content.includes(kw.toLowerCase())) matches++;\n+    }\n+    const score = matches / (cat.keywords.length || 1);\n+    if (score > best.score) {\n+      best = { id: cat.id, score };
-    }\n+  }\n+  return best;\n}\n+\n+return items.map(item => {\n+  const ticket = item.json;\n+  // Redact PII in description/body fields if present\n+  if (ticket.body) ticket.body = redact(ticket.body);\n+  if (ticket.description) ticket.description = redact(ticket.description);
-  // Category assignment\n+  const { id: category, score } = assignCategory(ticket.subject || '', ticket.body || ticket.description || '');\n+  const confidence = Math.round(score * 100) / 100; // 0-1\n+  // Simple route decision – if confidence low, route to "manual" queue\n+  const route_to = confidence < 0.4 ? 'manual' : 'auto';\n+  const route_reason = confidence < 0.4 ? 'Low confidence, needs manual review' : 'Automated routing based on keyword match';\n+  // Draft reply for routed tickets (only for auto route)\n+  const draft_reply = route_to === 'auto' ? `We have identified your request as ${category}. Our team will handle it shortly.` : '';
-  return { json: { ...ticket, category, confidence, route_to, route_reason, draft_reply } };
-});"
+        "jsCode": "/**\n * P2: PII Redaction\n * Redacts email addresses, Dutch phone numbers, and BSN-like patterns (9 digits) from ticket body and subject.\n */\nreturn items.map(item => {\n  let body = item.json.body || '';\n  let subject = item.json.subject || '';\n\n  // Regex for emails\n  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n  // Regex for Dutch phone numbers (e.g. 06-12345678, +31 6 12345678, 0101234567)\n  const phoneRegex = /(?:\\+31|0)(?:\\s?\\d){9}/g;\n  // Regex for BSN-like 9 digit strings\n  const bsnRegex = /\\b\\d{9}\\b/g;\n\n  body = body.replace(emailRegex, '[EMAIL_REDACTED]');\n  body = body.replace(phoneRegex, '[PHONE_REDACTED]');\n  body = body.replace(bsnRegex, '[BSN_REDACTED]');\n\n  subject = subject.replace(emailRegex, '[EMAIL_REDACTED]');\n  subject = subject.replace(phoneRegex, '[PHONE_REDACTED]');\n  subject = subject.replace(bsnRegex, '[BSN_REDACTED]');\n\n  return {\n    json: {\n      ...item.json,\n      body,\n      subject\n    }\n  };\n});"
       },
-      "name": "Function - Process Ticket",
-      "type": "n8n-nodes-base.function",
+      "name": "P2 - Redact PII",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 1,
-      "position": [650, 300]
+      "position": [
+        650,
+        300
+      ]
     },
     {
       "parameters": {
-        "fileName": "processed_tickets.json",
-        "dataPropertyName": "json",
-        "options": {
-          "format": "json"
+        "jsCode": "/**\n * P3 Triage & P4 Concept Reply\n * Categorizes tickets, scores confidence, routes using config keywords, and drafts a reply.\n */\nconst categories = [\n  { id: \"CAT_ACCESS_ACCOUNT\", keywords: [\"password\", \"wachtwoord\", \"mfa\", \"2fa\", \"login\", \"inloggen\", \"access\", \"toegang\", \"permissions\", \"rechten\"], queue: \"Q_IDENTITY_ACCESS\" },\n  { id: \"CAT_M365_COPILOT\", keywords: [\"m365 copilot\", \"copilot outlook\", \"copilot word\", \"copilot teams\", \"prompt\", \"copilot policy\", \"copilot licentie m365\"], queue: \"Q_M365\" },\n  { id: \"CAT_GH_COPILOT\", keywords: [\"github copilot\", \"copilot for github\", \"copilot seat\", \"copilot license\", \"copilot extension\", \"vs code copilot\", \"jetbrains copilot\"], queue: \"Q_DEVELOPER_EXPERIENCE\" },\n  { id: \"CAT_SOFTWARE_INSTALL\", keywords: [\"install\", \"installer\", \"update\", \"msi\", \"pkg\", \"admin rights\", \"permissions\", \"intune\", \"company portal\"], queue: \"Q_IT_SERVICE_DESK\" },\n  { id: \"CAT_VPN_REMOTE\", keywords: [\"vpn\", \"remote\", \"citrix\", \"anyconnect\", \"tunnel\", \"certificate\", \"certificaat\", \"timeout\"], queue: \"Q_NETWORK\" },\n  { id: \"CAT_NETWORK_WIFI\", keywords: [\"wifi\", \"wi-fi\", \"lan\", \"dns\", \"proxy\", \"network\", \"verbinding\", \"connectivity\", \"dhcp\", \"ip address\"], queue: \"Q_NETWORK\" },\n  { id: \"CAT_HARDWARE_DEVICE\", keywords: [\"laptop\", \"dock\", \"docking\", \"battery\", \"keyboard\", \"touchpad\", \"monitor\", \"slow\", \"performance\", \"overheat\"], queue: \"Q_WORKPLACE\" },\n  { id: \"CAT_PRINTER\", keywords: [\"printer\", \"print\", \"scan\", \"scanner\", \"driver\", \"queue\", \"spooler\", \"toner\"], queue: \"Q_WORKPLACE\" },\n  { id: \"CAT_ONBOARDING_HR\", keywords: [\"onboarding\", \"new hire\", \"contract\", \"declaratie\", \"hr\", \"payroll\", \"vacation\", \"verlof\", \"hr portal\"], queue: \"Q_HR\" },\n  { id: \"CAT_PROCUREMENT_BILLING\", keywords: [\"invoice\", \"factuur\", \"billing\", \"purchase\", \"po\", \"order\", \"kostenplaats\", \"procurement\", \"inkoop\"], queue: \"Q_FINANCE_PROCUREMENT\" }\n];\n\nreturn items.map(item => {\n  const ticket = item.json;\n  const content = ((ticket.subject || '') + ' ' + (ticket.body || '')).toLowerCase();\n  \n  let bestCat = null;\n  let maxMatches = 0;\n\n  // Basic keyword matcher\n  categories.forEach(cat => {\n    let matches = 0;\n    cat.keywords.forEach(kw => {\n      if (content.includes(kw.toLowerCase())) {\n        matches++;\n      }\n    });\n    if (matches > maxMatches) {\n      maxMatches = matches;\n      bestCat = cat;\n    }\n  });\n\n  let category = \"CAT_OTHER\";\n  let confidence = \"low\";\n  let route_to = \"Q_IT_SERVICE_DESK\";\n  let route_reason = \"No clear keywords found, routed to main desk.\";\n\n  if (bestCat) {\n    category = bestCat.id;\n    route_to = bestCat.queue;\n    if (maxMatches >= 3) {\n      confidence = \"high\";\n      route_reason = `Matched ${maxMatches} keywords for ${bestCat.id}.`;\n    } else {\n      confidence = \"medium\";\n      route_reason = `Matched ${maxMatches} keyword(s) for ${bestCat.id}.`;\n    }\n  }\n\n  // P4 Concept Answer (Only if routed, i.e., queue is not Q_IT_SERVICE_DESK)\n  let draft_reply = \"\";\n  if (route_to !== \"Q_IT_SERVICE_DESK\") {\n    draft_reply = `Beste medewerker,\\n\\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder ${category} en doorgezet naar het specialistische team (${route_to}). Zij nemen dit zo snel mogelijk in behandeling.\\n\\nMet vriendelijke groet,\\nIT Service Desk Support`;\n  }\n\n  return {\n    json: {\n      ...ticket,\n      category,\n      confidence,\n      route_to,\n      route_reason,\n      draft_reply\n    }\n  };\n});"
+      },
+      "name": "P3 & P4 - Triage & Draft Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "firstTicketSubject",
+              "value": "={{$json[0].subject}}"
+            },
+            {
+              "name": "firstTicketCategory",
+              "value": "={{$json[0].category}}"
+            },
+            {
+              "name": "firstTicketRoute",
+              "value": "={{$json[0].route_to}}"
+            }
+          ]
         }
       },
-      "name": "Write Output",
-      "type": "n8n-nodes-base.writeBinaryFile",
+      "name": "Set - Preview Output",
+      "type": "n8n-nodes-base.set",
       "typeVersion": 1,
-      "position": [850, 300]
+      "position": [
+        1050,
+        300
+      ]
     }
   ],
   "connections": {
@@ -93,7 +127,29 @@
       "main": [
         [
           {
-            "node": "Set - First ticket preview",
+            "node": "P2 - Redact PII",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P2 - Redact PII": {
+      "main": [
+        [
+          {
+            "node": "P3 & P4 - Triage & Draft Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P3 & P4 - Triage & Draft Reply": {
+      "main": [
+        [
+          {
+            "node": "Set - Preview Output",
             "type": "main",
             "index": 0
           }
