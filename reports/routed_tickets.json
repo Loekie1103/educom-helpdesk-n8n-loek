@@ -1,14 +1,14 @@
 {
-  "id": "T-0004",
-  "created_at": "2026-04-08 08:41:00",
+  "id": "T-0005",
+  "created_at": "2026-04-08 09:05:00",
   "channel": "email",
-  "language": "en",
+  "language": "nl",
   "requester_type": "internal",
-  "subject": "GitHub Copilot: extension says 'Not authorized'",
-  "category": "CAT_GH_COPILOT",
+  "subject": "Printer doet het niet op 3e verdieping",
+  "category": "CAT_PRINTER",
   "confidence": "high",
-  "route_to": "Q_DEVELOPER_EXPERIENCE",
-  "route_reason": "Matched 3 keywords for CAT_GH_COPILOT.",
-  "draft_reply": "Beste medewerker, Bedankt voor uw melding. We hebben uw ticket gecategoriseerd onder CAT_GH_COPILOT en doorgezet naar het specialistische team (Q_DEVELOPER_EXPERIENCE). Zij nemen dit zo snel mogelijk in behandeling. Met vriendelijke groet, IT Service Desk Support",
-  "body_fnva_hash": "cbf29d5e59cafcfa"
+  "route_to": "Q_WORKPLACE",
+  "route_reason": "Matched 3 keywords for CAT_PRINTER.",
+  "draft_reply": "Beste medewerker, Bedankt voor uw melding. We hebben uw ticket gecategoriseerd onder CAT_PRINTER en doorgezet naar het specialistische team (Q_WORKPLACE). Zij nemen dit zo snel mogelijk in behandeling. Met vriendelijke groet, IT Service Desk Support",
+  "body_fnva_hash": "cbf29d4b66116a3e"
 }
