@@ -1,14 +1,14 @@
 {
-  "id": "T-0115",
-  "created_at": "2026-04-30 08:02:00",
+  "id": "T-0116",
+  "created_at": "2026-04-30 08:28:00",
   "channel": "email",
-  "language": "nl",
+  "language": "en",
   "requester_type": "internal",
-  "subject": "Copilot Outlook: auto reply voor Finance loket",
-  "category": "CAT_M365_COPILOT",
+  "subject": "GitHub Copilot: can't sign in from JetBrains",
+  "category": "CAT_GH_COPILOT",
   "confidence": "medium",
-  "route_to": "Q_M365",
-  "route_reason": "Matched 1 keyword(s) for CAT_M365_COPILOT.",
-  "draft_reply": "Beste medewerker, Bedankt voor uw melding. We hebben uw ticket gecategoriseerd onder CAT_M365_COPILOT en doorgezet naar het specialistische team (Q_M365). Zij nemen dit zo snel mogelijk in behandeling. Met vriendelijke groet, IT Service Desk Support",
-  "body_fnva_hash": "cbf29d522ad3b0c0"
+  "route_to": "Q_DEVELOPER_EXPERIENCE",
+  "route_reason": "Matched 1 keyword(s) for CAT_GH_COPILOT.",
+  "draft_reply": "Beste medewerker, Bedankt voor uw melding. We hebben uw ticket gecategoriseerd onder CAT_GH_COPILOT en doorgezet naar het specialistische team (Q_DEVELOPER_EXPERIENCE). Zij nemen dit zo snel mogelijk in behandeling. Met vriendelijke groet, IT Service Desk Support",
+  "body_fnva_hash": "cbf29d298e460d3b"
 }
