@@ -59,24 +59,28 @@ Create an n8n workflow in shadow mode for helpdesk ticket triage and Pareto anal
 - [x] Set up output writing for processed tickets
 
 ### Day 3: Pareto Analysis and Reporting
-- [ ] Implement P5 Pareto: Calculate top categories with counts and percentages
-- [ ] Implement P6 Trend/drift: Compare periods and signal risers/fallers
-- [ ] Implement P7 Output: Create reports/latest.json with Pareto + trends
-- [ ] Create reports/routed_tickets.json for tickets routed to other loket
-- [ ] Implement P8 Observability: Add run_id generation and logging of counts
-- [ ] Set up logging for processed, errors, routed tickets per category
+- [x] Implement P5 Pareto: Calculate top categories with counts and percentages (Configured for n8n v2.23.4)
+- [x] Implement P6 Trend/drift: Compare periods and signal risers/fallers
+- [ ] Implement P7 Output: Create reports/latest.json with Pareto + trends (via GitHub API Integration)
+- [ ] Create reports/routed_tickets.json for tickets routed to other loket (via GitHub API Integration)
+- [x] Implement P8 Observability: Add run_id generation and logging of counts (via GitHub API with unique run_ids)
+- [x] Set up logging for processed, errors, routed tickets per category
+- [x] Fix queue ID mismatches between P3 code and queues.json (Q_ACCESS_MANAGEMENT→Q_IDENTITY_ACCESS, etc.)
+- [x] Add missing queue for CAT_M365_COPILOT (Q_M365)
+- [x] Add CAT_OTHER keywords from categories.json
+- [x] Fix S1 body hash (substring→SHA-256)
 
 ### Day 4: Quality Checks and Optimization
 - [ ] Implement S1 Data-minimalization: Ensure no full ticket bodies in outputs/logs
 - [ ] Implement S2 Idempotency: Ensure no duplicate outputs on re-run
 - [ ] Implement S3 Reproducibility: Ensure workflow produces consistent results
-- [ ] Implement S4 Config-driven: Ensure categories/loketten adjustable via config files
+- [x] Implement S4 Config-driven: Categories & keywords loaded from GitHub-hosted categories.json, queues resolved via queues.json. Hardcoded fallback if configs fail.
 - [ ] Add quality checks and sampling validation
 - [ ] Test workflow with demo-data
 
 ### Day 5: Documentation and Finalization
 - [ ] Create README.md with instructions, choices, and evaluation notes
-- [ ] Export n8n workflow to workflow-export.json
+- [x] Export n8n workflow to workflow-export.json
 - [ ] Run final demonstration scenario
 - [ ] Prepare live demo: Show run_id, 3 tickets (clear category, misroute with draft_reply, vague with low confidence), Pareto + trend conclusion, redaction demonstration
 - [ ] Create "v2 direction to customer" reflection
