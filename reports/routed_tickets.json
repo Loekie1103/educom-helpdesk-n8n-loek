@@ -1,14 +1,14 @@
 {
-  "id": "T-0077",
-  "created_at": "2026-04-21 10:24:00",
-  "channel": "email",
-  "language": "en",
+  "id": "T-0079",
+  "created_at": "2026-04-22 08:29:00",
+  "channel": "portal",
+  "language": "nl",
   "requester_type": "internal",
-  "subject": "Printer: cannot find printer on new laptop",
-  "category": "CAT_PRINTER",
-  "confidence": "high",
-  "route_to": "Q_WORKPLACE",
-  "route_reason": "Matched 3 keywords for CAT_PRINTER.",
-  "draft_reply": "Beste medewerker, Bedankt voor uw melding. We hebben uw ticket gecategoriseerd onder CAT_PRINTER en doorgezet naar het specialistische team (Q_WORKPLACE). Zij nemen dit zo snel mogelijk in behandeling. Met vriendelijke groet, IT Service Desk Support",
-  "body_fnva_hash": "cbf29d298e460d37"
+  "subject": "HR: contract verlenging",
+  "category": "CAT_ONBOARDING_HR",
+  "confidence": "medium",
+  "route_to": "Q_HR",
+  "route_reason": "Matched 2 keyword(s) for CAT_ONBOARDING_HR.",
+  "draft_reply": "Beste medewerker, Bedankt voor uw melding. We hebben uw ticket gecategoriseerd onder CAT_ONBOARDING_HR en doorgezet naar het specialistische team (Q_HR). Zij nemen dit zo snel mogelijk in behandeling. Met vriendelijke groet, IT Service Desk Support",
+  "body_fnva_hash": "cbf29d4a0b8428ff"
 }
