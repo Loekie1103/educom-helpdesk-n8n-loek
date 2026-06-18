@@ -1,14 +1,14 @@
 {
-  "id": "T-0109",
-  "created_at": "2026-04-29 08:06:00",
+  "id": "T-0110",
+  "created_at": "2026-04-29 08:30:00",
   "channel": "email",
   "language": "nl",
   "requester_type": "internal",
-  "subject": "Account: toegang tot Finance SharePoint",
-  "category": "CAT_ACCESS_ACCOUNT",
+  "subject": "Device: toetsenbord layout veranderd",
+  "category": "CAT_HARDWARE_DEVICE",
   "confidence": "medium",
-  "route_to": "Q_IDENTITY_ACCESS",
-  "route_reason": "Matched 1 keyword(s) for CAT_ACCESS_ACCOUNT.",
-  "draft_reply": "Beste medewerker, Bedankt voor uw melding. We hebben uw ticket gecategoriseerd onder CAT_ACCESS_ACCOUNT en doorgezet naar het specialistische team (Q_IDENTITY_ACCESS). Zij nemen dit zo snel mogelijk in behandeling. Met vriendelijke groet, IT Service Desk Support",
-  "body_fnva_hash": "cbf29d3c81ff9cc7"
+  "route_to": "Q_WORKPLACE",
+  "route_reason": "Matched 1 keyword(s) for CAT_HARDWARE_DEVICE.",
+  "draft_reply": "Beste medewerker, Bedankt voor uw melding. We hebben uw ticket gecategoriseerd onder CAT_HARDWARE_DEVICE en doorgezet naar het specialistische team (Q_WORKPLACE). Zij nemen dit zo snel mogelijk in behandeling. Met vriendelijke groet, IT Service Desk Support",
+  "body_fnva_hash": "cbf29d31ad9593a8"
 }
