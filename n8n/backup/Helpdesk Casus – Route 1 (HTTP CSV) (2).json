@@ -7,10 +7,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -2320,
-        176
+        -688,
+        80
       ],
-      "id": "b6bc0616-e5ea-43ca-8d30-9dc25c504ffb"
+      "id": "e79267cc-f57e-4930-abd0-29d543e0b54c"
     },
     {
       "parameters": {
@@ -22,10 +22,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [
-        -2096,
-        -32
+        -464,
+        -128
       ],
-      "id": "ee96ee4c-5eaf-42fe-a171-d7823de012c2"
+      "id": "8386a927-d541-4f15-9f67-c68ea383e8de"
     },
     {
       "parameters": {
@@ -37,10 +37,10 @@
       "type": "n8n-nodes-base.spreadsheetFile",
       "typeVersion": 1,
       "position": [
-        -1920,
-        -32
+        -288,
+        -128
       ],
-      "id": "3eb62f6a-ee70-4437-a57c-8f6b088fdd50"
+      "id": "b123bada-3599-4e2f-8f9d-8e5e9a028763"
     },
     {
       "parameters": {
@@ -51,10 +51,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [
-        -2096,
-        176
+        -464,
+        80
       ],
-      "id": "38aa3e04-681d-4bef-9841-dc094691587e"
+      "id": "67379911-1daf-4ffd-814f-4eb00700c583"
     },
     {
       "parameters": {
@@ -65,10 +65,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [
-        -2096,
-        400
+        -464,
+        304
       ],
-      "id": "f390f078-87c5-4282-9137-b44ff9bdacae"
+      "id": "262d6434-7a36-43e9-a7f6-441925cd6b0a"
     },
     {
       "parameters": {
@@ -78,10 +78,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -1744,
-        -32
+        -112,
+        -128
       ],
-      "id": "d35c4669-aba0-4abc-b65f-ce23bf0326d0"
+      "id": "7eee09bf-f802-4c8b-b466-8739456efa5a"
     },
     {
       "parameters": {
@@ -91,10 +91,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -1376,
-        176
+        256,
+        80
       ],
-      "id": "f50cbfeb-178c-4935-a6e2-60454a513555"
+      "id": "90b095a6-77a5-4757-8996-55074bd84974"
     },
     {
       "parameters": {
@@ -113,10 +113,10 @@
       "type": "n8n-nodes-base.itemLists",
       "typeVersion": 2.1,
       "position": [
-        -1056,
-        -16
+        576,
+        -112
       ],
-      "id": "caa21e8f-9846-4d9c-895f-eb156c5ddede"
+      "id": "00b5eca9-3881-4471-9368-b9e354cb093d"
     },
     {
       "parameters": {
@@ -134,10 +134,10 @@
       "type": "n8n-nodes-base.sort",
       "typeVersion": 1,
       "position": [
-        -848,
-        -16
+        784,
+        -112
       ],
-      "id": "3643de8b-53d7-4041-8c2a-51602f9968ce"
+      "id": "d55aad47-3fc1-4915-b506-86eddd17d8c0"
     },
     {
       "parameters": {
@@ -165,10 +165,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
       "position": [
-        -656,
-        -16
+        976,
+        -112
       ],
-      "id": "6b3011e8-7fde-42f7-8295-a801b8a1629a"
+      "id": "1a543ac7-25ad-4c54-a9df-820be7bfe142"
     },
     {
       "parameters": {
@@ -178,10 +178,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -448,
-        -16
+        1184,
+        -112
       ],
-      "id": "b2db67e4-c670-4371-abab-7910080c3a50"
+      "id": "3fd29a63-edd2-40d0-ac76-5a56af77b94d"
     },
     {
       "parameters": {
@@ -191,10 +191,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -256,
-        -16
+        1376,
+        -112
       ],
-      "id": "a71bbdb4-49b9-44fb-ad6b-bce6d7e27e1d"
+      "id": "d4abd740-32a0-41b3-b7fc-b680d68233b8"
     },
     {
       "parameters": {
@@ -204,43 +204,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -1072,
-        336
+        560,
+        240
       ],
-      "id": "e9e139f0-0b38-46be-9276-4db2d83feceb"
-    },
-    {
-      "parameters": {
-        "values": {
-          "string": [
-            {
-              "name": "firstTicketSubject",
-              "value": "={{$json.subject}}"
-            },
-            {
-              "name": "firstTicketCategory",
-              "value": "={{$json.category}}"
-            },
-            {
-              "name": "firstTicketRoute",
-              "value": "={{$json.route_to}}"
-            },
-            {
-              "name": "firstTicketDate",
-              "value": "={{$json.created_at}}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "name": "Set - Preview Output",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 1,
-      "position": [
-        -1072,
-        176
-      ],
-      "id": "75b0c124-a74b-48d4-9ce7-f405e2d7dd21"
+      "id": "d7793595-e188-43e8-8630-bb17d349e6c4"
     },
     {
       "parameters": {
@@ -250,11 +217,102 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -1568,
-        160
+        64,
+        64
       ],
-      "id": "f1479b1d-76ee-443c-86b6-71769bfa74d9",
+      "id": "76e448e3-d8df-4ad7-9ee3-88b6075e6bc1",
       "name": "Merge"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "Loekie1103",
+          "mode": "list",
+          "cachedResultName": "Loekie1103",
+          "cachedResultUrl": "https://github.com/Loekie1103"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "educom-helpdesk-n8n-loek",
+          "mode": "list",
+          "cachedResultName": "educom-helpdesk-n8n-loek",
+          "cachedResultUrl": "https://github.com/Loekie1103/educom-helpdesk-n8n-loek"
+        },
+        "filePath": "reports/latest.json",
+        "fileContent": "={{ JSON.stringify($json, null, 2) }}",
+        "commitMessage": "=Update report - {{ $json.timestamp }}"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        1552,
+        -112
+      ],
+      "id": "5704bf47-eac7-422d-8d75-6b64fb4c14f4",
+      "name": "Edit a file1",
+      "webhookId": "4a13d88d-b057-49cf-96ba-e2f3e85f050f",
+      "credentials": {
+        "githubApi": {
+          "id": "2ExKsDV1uRdA7qUf",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "Loekie1103",
+          "mode": "list",
+          "cachedResultName": "Loekie1103",
+          "cachedResultUrl": "https://github.com/Loekie1103"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "educom-helpdesk-n8n-loek",
+          "mode": "list",
+          "cachedResultName": "educom-helpdesk-n8n-loek",
+          "cachedResultUrl": "https://github.com/Loekie1103/educom-helpdesk-n8n-loek"
+        },
+        "filePath": "reports/routed_tickets.json",
+        "fileContent": "={{ JSON.stringify($json, null, 2) }}",
+        "commitMessage": "=Routed tickets"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        928,
+        240
+      ],
+      "id": "6b091e58-502f-4688-a0f9-91d5c84fefee",
+      "name": "Edit a file",
+      "webhookId": "0cc2172c-1176-4266-b342-ddfbaf05c310",
+      "credentials": {
+        "githubApi": {
+          "id": "2ExKsDV1uRdA7qUf",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Routed tickets",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        752,
+        240
+      ],
+      "id": "8af23cd1-57f6-4874-b235-079655055a47",
+      "name": "Aggregate"
     }
   ],
   "pinData": {},
@@ -344,11 +402,6 @@
             "index": 0
           },
           {
-            "node": "Set - Preview Output",
-            "type": "main",
-            "index": 0
-          },
-          {
             "node": "P7 - Compile Routed Tickets",
             "type": "main",
             "index": 0
@@ -410,6 +463,44 @@
           }
         ]
       ]
+    },
+    "P7 & P8 - Compile Observability Report": {
+      "main": [
+        [
+          {
+            "node": "Edit a file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P7 - Compile Routed Tickets": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit a file": {
+      "main": [
+        []
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Edit a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -421,7 +512,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "7daa3527-304d-4102-8f5d-403ed52fdb9b",
+  "versionId": "06c02747-c1ee-4976-818d-870e407691f5",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f705b3c706bbe3689e4e975952b6e01b6eb93a80fcd5a3a099acc6c333c1f690"

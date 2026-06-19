@@ -61,8 +61,8 @@ Create an n8n workflow in shadow mode for helpdesk ticket triage and Pareto anal
 ### Day 3: Pareto Analysis and Reporting
 - [x] Implement P5 Pareto: Calculate top categories with counts and percentages (Configured for n8n v2.23.4)
 - [x] Implement P6 Trend/drift: Compare periods and signal risers/fallers
-- [ ] Implement P7 Output: Create reports/latest.json with Pareto + trends (via GitHub API Integration)
-- [ ] Create reports/routed_tickets.json for tickets routed to other loket (via GitHub API Integration)
+- [x] Implement P7 Output: Create reports/latest.json with Pareto + trends (via GitHub API Integration)
+- [x] Create reports/routed_tickets.json for tickets routed to other loket (via GitHub API Integration)
 - [x] Implement P8 Observability: Add run_id generation and logging of counts (via GitHub API with unique run_ids)
 - [x] Set up logging for processed, errors, routed tickets per category
 - [x] Fix queue ID mismatches between P3 code and queues.json (Q_ACCESS_MANAGEMENT→Q_IDENTITY_ACCESS, etc.)
@@ -71,15 +71,15 @@ Create an n8n workflow in shadow mode for helpdesk ticket triage and Pareto anal
 - [x] Fix S1 body hash (substring→SHA-256)
 
 ### Day 4: Quality Checks and Optimization
-- [ ] Implement S1 Data-minimalization: Ensure no full ticket bodies in outputs/logs
-- [ ] Implement S2 Idempotency: Ensure no duplicate outputs on re-run
-- [ ] Implement S3 Reproducibility: Ensure workflow produces consistent results
+- [x] Implement S1 Data-minimalization: Ensure no full ticket bodies in outputs/logs (FNV-1a hash in routed tickets)
+- [x] Implement S2 Idempotency: Deterministic run_id from ticket IDs (FNV-1a hash), GitHub Edit overwrites
+- [x] Implement S3 Reproducibility: Report timestamp uses max ticket date (deterministic)
 - [x] Implement S4 Config-driven: Categories & keywords loaded from GitHub-hosted categories.json, queues resolved via queues.json. Hardcoded fallback if configs fail.
 - [ ] Add quality checks and sampling validation
 - [ ] Test workflow with demo-data
 
 ### Day 5: Documentation and Finalization
-- [ ] Create README.md with instructions, choices, and evaluation notes
+- [x] Create README.md with instructions, choices, and evaluation notes
 - [x] Export n8n workflow to workflow-export.json
 - [ ] Run final demonstration scenario
 - [ ] Prepare live demo: Show run_id, 3 tickets (clear category, misroute with draft_reply, vague with low confidence), Pareto + trend conclusion, redaction demonstration
