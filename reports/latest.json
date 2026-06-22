@@ -1,135 +1,107 @@
 {
-  "run_id": "RUN-CBF2A275FB3846B4",
-  "timestamp": "2026-05-11 22:00:00",
-  "summary_processed": 150,
+  "run_id": "RUN-CBF2A159B3524DE7",
+  "timestamp": "2026-04-30 10:05:00",
+  "summary_processed": 120,
   "summary_errors": 0,
-  "summary_routed": 140,
+  "summary_routed": 110,
   "category_counts": {
-    "CAT_ACCESS_ACCOUNT": 29,
-    "CAT_VPN_REMOTE": 10,
+    "CAT_ACCESS_ACCOUNT": 24,
+    "CAT_VPN_REMOTE": 7,
     "CAT_OTHER": 10,
-    "CAT_GH_COPILOT": 13,
-    "CAT_PRINTER": 12,
-    "CAT_ONBOARDING_HR": 11,
-    "CAT_PROCUREMENT_BILLING": 15,
-    "CAT_HARDWARE_DEVICE": 10,
-    "CAT_SOFTWARE_INSTALL": 12,
-    "CAT_M365_COPILOT": 20,
-    "CAT_NETWORK_WIFI": 8
+    "CAT_GH_COPILOT": 11,
+    "CAT_PRINTER": 11,
+    "CAT_ONBOARDING_HR": 7,
+    "CAT_PROCUREMENT_BILLING": 13,
+    "CAT_HARDWARE_DEVICE": 8,
+    "CAT_SOFTWARE_INSTALL": 7,
+    "CAT_M365_COPILOT": 16,
+    "CAT_NETWORK_WIFI": 6
   },
   "pareto_analysis": [
     {
       "category": "CAT_ACCESS_ACCOUNT",
-      "count_category": 29,
-      "percentage": 19,
-      "count": 29
+      "count_category": 24,
+      "percentage": 20,
+      "count": 24
     },
     {
       "category": "CAT_M365_COPILOT",
-      "count_category": 20,
+      "count_category": 16,
       "percentage": 13,
-      "count": 20
+      "count": 16
     },
     {
       "category": "CAT_PROCUREMENT_BILLING",
-      "count_category": 15,
-      "percentage": 10,
-      "count": 15
-    },
-    {
-      "category": "CAT_GH_COPILOT",
       "count_category": 13,
-      "percentage": 9,
+      "percentage": 11,
       "count": 13
     },
     {
-      "category": "CAT_PRINTER",
-      "count_category": 12,
-      "percentage": 8,
-      "count": 12
-    },
-    {
-      "category": "CAT_SOFTWARE_INSTALL",
-      "count_category": 12,
-      "percentage": 8,
-      "count": 12
-    },
-    {
-      "category": "CAT_ONBOARDING_HR",
+      "category": "CAT_GH_COPILOT",
       "count_category": 11,
-      "percentage": 7,
+      "percentage": 9,
       "count": 11
     },
     {
-      "category": "CAT_VPN_REMOTE",
-      "count_category": 10,
-      "percentage": 7,
-      "count": 10
+      "category": "CAT_PRINTER",
+      "count_category": 11,
+      "percentage": 9,
+      "count": 11
     },
     {
       "category": "CAT_OTHER",
       "count_category": 10,
-      "percentage": 7,
+      "percentage": 8,
       "count": 10
     },
     {
       "category": "CAT_HARDWARE_DEVICE",
-      "count_category": 10,
+      "count_category": 8,
       "percentage": 7,
-      "count": 10
+      "count": 8
+    },
+    {
+      "category": "CAT_VPN_REMOTE",
+      "count_category": 7,
+      "percentage": 6,
+      "count": 7
+    },
+    {
+      "category": "CAT_ONBOARDING_HR",
+      "count_category": 7,
+      "percentage": 6,
+      "count": 7
+    },
+    {
+      "category": "CAT_SOFTWARE_INSTALL",
+      "count_category": 7,
+      "percentage": 6,
+      "count": 7
     },
     {
       "category": "CAT_NETWORK_WIFI",
-      "count_category": 8,
+      "count_category": 6,
       "percentage": 5,
-      "count": 8
+      "count": 6
     }
   ],
   "trends": [
     {
-      "category": "CAT_PROCUREMENT_BILLING",
-      "period1_count": 10,
-      "period2_count": 5,
-      "difference": -5,
-      "signal": "faller"
-    },
-    {
-      "category": "CAT_OTHER",
+      "category": "CAT_GH_COPILOT",
       "period1_count": 7,
-      "period2_count": 3,
-      "difference": -4,
+      "period2_count": 4,
+      "difference": -3,
       "signal": "faller"
     },
     {
-      "category": "CAT_SOFTWARE_INSTALL",
-      "period1_count": 4,
-      "period2_count": 8,
-      "difference": 4,
-      "signal": "riser"
-    },
-    {
-      "category": "CAT_ONBOARDING_HR",
-      "period1_count": 4,
-      "period2_count": 7,
-      "difference": 3,
-      "signal": "riser"
-    },
-    {
-      "category": "CAT_VPN_REMOTE",
-      "period1_count": 4,
-      "period2_count": 6,
+      "category": "CAT_ACCESS_ACCOUNT",
+      "period1_count": 11,
+      "period2_count": 13,
       "difference": 2,
       "signal": "riser"
     },
     {
-      "category": "CAT_PRINTER",
-      "period1_count": 7,
-      "period2_count": 5,
-      "difference": -2,
-      "signal": "faller"
-    },
-    {
-      "category": "CAT_HARDWARE_DEVICE",
+      "category": "CAT_OTHER",
       "period1_count": 4,
       "period2_count": 6,
       "difference": 2,
@@ -137,27 +109,55 @@
     },
     {
       "category": "CAT_M365_COPILOT",
-      "period1_count": 9,
-      "period2_count": 11,
+      "period1_count": 7,
+      "period2_count": 9,
       "difference": 2,
       "signal": "riser"
     },
     {
-      "category": "CAT_ACCESS_ACCOUNT",
-      "period1_count": 15,
-      "period2_count": 14,
-      "difference": -1,
-      "signal": "stable"
-    },
-    {
-      "category": "CAT_GH_COPILOT",
-      "period1_count": 7,
-      "period2_count": 6,
-      "difference": -1,
-      "signal": "stable"
-    },
-    {
       "category": "CAT_NETWORK_WIFI",
+      "period1_count": 4,
+      "period2_count": 2,
+      "difference": -2,
+      "signal": "faller"
+    },
+    {
+      "category": "CAT_VPN_REMOTE",
+      "period1_count": 4,
+      "period2_count": 3,
+      "difference": -1,
+      "signal": "stable"
+    },
+    {
+      "category": "CAT_PRINTER",
+      "period1_count": 6,
+      "period2_count": 5,
+      "difference": -1,
+      "signal": "stable"
+    },
+    {
+      "category": "CAT_ONBOARDING_HR",
+      "period1_count": 3,
+      "period2_count": 4,
+      "difference": 1,
+      "signal": "stable"
+    },
+    {
+      "category": "CAT_PROCUREMENT_BILLING",
+      "period1_count": 6,
+      "period2_count": 7,
+      "difference": 1,
+      "signal": "stable"
+    },
+    {
+      "category": "CAT_SOFTWARE_INSTALL",
+      "period1_count": 4,
+      "period2_count": 3,
+      "difference": -1,
+      "signal": "stable"
+    },
+    {
+      "category": "CAT_HARDWARE_DEVICE",
       "period1_count": 4,
       "period2_count": 4,
       "difference": 0,
