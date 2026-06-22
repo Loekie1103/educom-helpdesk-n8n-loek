@@ -120,3 +120,33 @@ T-0118,2026-04-30T09:13:00Z,email,nl,internal,"Printer: queue mapping ontbreekt"
 T-0119,2026-04-30T09:39:00Z,email,nl,internal,"Account: groepen / rechten aanpassen","Kan ik lid worden van 'DevOps' groep? Nodig voor repo access.",Q_IDENTITY_ACCESS
 T-0120,2026-04-30T10:05:00Z,email,nl,internal,"VPN: split tunnel policy","Is split tunnel toegestaan? VPN performance is slecht zonder.",Q_NETWORK
 
+T-0121,2026-05-01T08:00:00Z,email,nl,internal,"""Wachtwoord verloopt morgen — ik kan nu niet resetten""","""Mijn wachtwoord expireert morgen. De self-service portal geeft timeout. Kan iemand MFA reset doen?""",Q_IT_SERVICE_DESK
+T-0122,2026-05-01T10:00:00Z,portal,nl,internal,"""Toegang tot klantportal niet werkend""","""Sinds deze ochtend krijg ik access denied op klantportal. Andere rechten werken wel. Graag nagaan.""",Q_IT_SERVICE_DESK
+T-0123,2026-05-01T13:00:00Z,email,en,external,"""Cannot login after 2FA reset""","""External contractor here. 2FA was reset but now login loop. Need urgent access.""",Q_IT_SERVICE_DESK
+T-0124,2026-05-01T16:00:00Z,portal,nl,internal,"""MFA app kwijt — nieuwe telefoon""","""Nieuwe telefoon. MFA app niet overgezet. Kan niet inloggen op VPN of Outlook. Please help.""",Q_IDENTITY_ACCESS
+T-0125,2026-05-02T09:00:00Z,email,nl,internal,"""Rechten: nieuwe medewerker Finance afdeling""","""Nieuwe medewerker in Finance team. Heeft geen rechten op gedeelde mailbox finance@ en kostenplaatsen.""",Q_IT_SERVICE_DESK
+T-0126,2026-05-02T14:00:00Z,email,nl,internal,"""Laptop: battery drains in 30 minutes""","""Mijn laptop battery gaat van 100% naar 0% in een half uur. Overheat waarschuwing ook.""",Q_WORKPLACE
+T-0127,2026-05-02T18:00:00Z,email,nl,internal,"""M365 Copilot in Teams werkt niet""","""Copilot in Teams geeft niet beschikbaar in uw regio. Kunnen jullie policy checken?""",Q_M365
+T-0128,2026-05-03T11:00:00Z,portal,en,internal,"""Copilot Outlook: suggestions are in wrong language""","""Outlook Copilot drafts in French. I need English. Language setting in M365 is English.""",Q_IT_SERVICE_DESK
+T-0129,2026-05-03T15:00:00Z,email,en,internal,"""GitHub Copilot: seat not showing in dashboard""","""Bought 5 seats last week. Dashboard still shows 0. Can you check provisioning?""",Q_DEVELOPER_EXPERIENCE
+T-0130,2026-05-03T20:00:00Z,email,nl,internal,"""AnyConnect certificate verlopen — remote access down""","""Thuiswerkdag. Certificaat anyconnect is verlopen. Ik kan remote niet werken.""",Q_NETWORK
+T-0131,2026-05-04T09:00:00Z,portal,en,internal,"""VS Code Copilot: ghost text not appearing""","""Copilot installed but no inline suggestions. Tried reinstall different workspace. Same issue.""",Q_IT_SERVICE_DESK
+T-0132,2026-05-04T16:00:00Z,email,nl,external,"""VPN: geen verbinding vanuit hotel netwerk""","""Externe consultant in hotel. VPN timeout op hotel WiFi. Zowel AnyConnect als Citrix.""",Q_IT_SERVICE_DESK
+T-0133,2026-05-04T22:00:00Z,portal,nl,internal,"""Software: Intune Company Portal toont geen apps""","""Company Portal is leeg. Kan niets installeren. Mijn collega ziet wel apps.""",Q_WORKPLACE
+T-0134,2026-05-05T12:00:00Z,email,nl,internal,"""M365 Copilot: prompt geblokkeerd door DLP""","""Copilot weigert antwoord te geven op een prompt. DLP policy blokkeert alles. Is dit aanpasbaar?""",Q_M365
+T-0135,2026-05-05T16:00:00Z,portal,nl,internal,"""Wi‑Fi: DHCP geeft geen IP adres""","""Op de 2e verdieping krijgen collegas 169.254.x.x. DNS en proxy werken niet.""",Q_NETWORK
+T-0136,2026-05-05T23:00:00Z,portal,en,internal,"""Docking station not detecting external monitor""","""USB‑C dock connects but monitor stays black. Tried different cables same. Keyboard works through dock.""",Q_WORKPLACE
+T-0137,2026-05-06T11:00:00Z,email,en,internal,"""VPN tunnel suddenly blocks port 443""","""Port 443 was open yesterday. Today blocked. Need it for API testing. Urgent.""",Q_NETWORK
+T-0138,2026-05-06T15:00:00Z,email,nl,internal,"""Admin rights nodig voor installatie Docker""","""Moet Docker installeren voor project. Zonder admin rights kan dit niet. Kan IT helpen?""",Q_IT_SERVICE_DESK
+T-0139,2026-05-06T21:00:00Z,email,nl,internal,"""GitHub Copilot: declaratie voor seat kosten""","""Ik heb zelf een seat gekocht. Hoe declareer ik dit? HR verwijst naar IT.""",Q_IT_SERVICE_DESK
+T-0140,2026-05-07T10:00:00Z,email,nl,internal,"""M365 Copilot licentie activeren voor team van 8""","""Ons team van 8 medewerkers heeft nog geen Copilot licentie. Kunnen jullie dit bulk aanvragen?""",Q_IT_SERVICE_DESK
+T-0141,2026-05-07T15:00:00Z,email,nl,internal,"""Proxy blokkeert npm registry""","""Kan geen packages installeren via npm. Proxy blokkeert registry.npmjs.org. Kan er een uitzondering komen?""",Q_IT_SERVICE_DESK
+T-0142,2026-05-07T22:00:00Z,email,nl,internal,"""Printer: toner bestelling niet aangekomen""","""Twee weken geleden toner besteld voor HP-Laser-3F. Nog steeds niet geleverd. Print queue loopt vol.""",Q_PRINTER
+T-0143,2026-05-08T12:00:00Z,email,nl,internal,"""Touchpad reageert niet na Windows update""","""Na laatste update werkt touchpad niet meer. Externe muis werkt wel. Driver issue?""",Q_WORKPLACE
+T-0144,2026-05-08T20:00:00Z,portal,nl,internal,"""Nieuwe medewerker: HR portal onboarding vastgelopen""","""Onboarding formulier in HR portal blijft hangen op stap 3. Contract al getekend. Help.""",Q_IT_SERVICE_DESK
+T-0145,2026-05-09T13:00:00Z,email,nl,internal,"""Declaratie: reiskosten afgewezen door HR systeem""","""Mijn declaratie voor mei is afgewezen met invalid cost center. HR zegt: vraag IT.""",Q_IT_SERVICE_DESK
+T-0146,2026-05-09T20:00:00Z,email,en,internal,"""MSI installer fails with error 1603""","""Trying to install company tool via MSI. Error 1603. pkg rejected by Windows Defender?""",Q_WORKPLACE
+T-0147,2026-05-10T12:00:00Z,email,nl,internal,"""Verlof aanvraag systeem down?""","""Kan geen verlof aanvragen. HR portal timeout. Collegas hebben hetzelfde probleem.""",Q_IT_SERVICE_DESK
+T-0148,2026-05-10T19:00:00Z,email,nl,internal,"""Factuur INV-50123 verkeerd geboekt""","""Factuur staat op verkeerde kostenplaats. Moet van 4103 naar 4107. Kan iemand dit corrigeren?""",Q_IT_SERVICE_DESK
+T-0149,2026-05-11T14:00:00Z,email,nl,internal,"""Procurement: PO goedkeuring vast bij manager""","""PO voor nieuwe laptops wacht al 5 dagen op goedkeuring. Manager zegt geen notificatie ontvangen.""",Q_FINANCE_PROCUREMENT
+T-0150,2026-05-11T22:00:00Z,email,en,internal,"""Very slow network on floor 4""","""Everything is slow. WiFi drops VPN disconnects. Multiple colleagues affected since this morning.""",Q_IT_SERVICE_DESK
