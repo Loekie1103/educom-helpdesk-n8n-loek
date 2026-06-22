@@ -1,11 +1,6 @@
 {
-<<<<<<< HEAD
-  "run_id": "1M6I7QG5J",
-  "timestamp": "2026-06-18T12:42:05.858Z",
-=======
   "run_id": "RUN-CBF2A159B3524DE7",
   "timestamp": "2026-04-30 10:05:00",
->>>>>>> bfbb6117b76e46bdbfe6b5254f16abc7fedc2eb1
   "summary_processed": 120,
   "summary_errors": 0,
   "summary_routed": 110,
