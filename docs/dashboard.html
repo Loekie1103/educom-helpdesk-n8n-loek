@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Helpdesk Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #1a1a2e; padding: 20px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  header { background: #16213e; color: #fff; padding: 24px 32px; border-radius: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  header h1 { font-size: 24px; }
+  header .meta { font-size: 14px; opacity: 0.8; }
+  header .badge { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .badge.processed { background: #0f3460; }
+  .badge.routed { background: #533483; }
+  .badge.errors { background: #e94560; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .card h2 { font-size: 16px; margin-bottom: 16px; color: #16213e; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+  .card.full { grid-column: 1 / -1; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+  th { color: #666; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+  .signal { font-weight: 600; padding: 3px 10px; border-radius: 12px; font-size: 12px; display: inline-block; }
+  .riser { background: #d4edda; color: #155724; }
+  .faller { background: #f8d7da; color: #721c24; }
+  .stable { background: #e2e3e5; color: #383d41; }
+  .category-bar { display: flex; align-items: center; gap: 8px; }
+  .category-bar .bar { height: 20px; border-radius: 4px; min-width: 4px; transition: width 0.6s ease; }
+  .category-bar .label { min-width: 140px; font-size: 13px; }
+  .category-bar .pct { font-size: 13px; font-weight: 600; min-width: 40px; text-align: right; }
+  .summary-strip { display: flex; gap: 16px; flex-wrap: wrap; }
+  .summary-item { flex: 1; min-width: 140px; background: #f8f9fc; border-radius: 8px; padding: 14px; text-align: center; }
+  .summary-item .value { font-size: 28px; font-weight: 700; color: #16213e; }
+  .summary-item .label { font-size: 12px; color: #666; margin-top: 4px; }
+  #chart-container { height: 280px; }
+  .loading { text-align: center; padding: 60px 20px; color: #999; font-size: 15px; }
+  .error { background: #fff5f5; border: 1px solid #fcc; color: #c00; border-radius: 8px; padding: 20px; margin: 20px 0; }
+  .trends-table td:first-child { font-weight: 500; }
+  .chart-row { display: flex; gap: 20px; }
+  .chart-row > div { flex: 1; min-width: 0; }
+</style>
+</head>
+<body>
+<div class="container" id="app">
+  <div class="loading">🔄 Dashboard wordt geladen…</div>
+</div>
+
+<script>
+(async function() {
+  const app = document.getElementById('app');
+  const BASE = 'https://raw.githubusercontent.com/Loekie1103/educom-helpdesk-n8n-loek';
+
+  async function fetchJSON(path) {
+    const r = await fetch(BASE + path);
+    if (!r.ok) throw new Error(`HTTP ${r.status} fetching ${path}`);
+    return r.json();
+  }
+
+  try {
+    const [latest, routed] = await Promise.all([
+      fetchJSON('/main/reports/latest.json'),
+      fetchJSON('/main/reports/routed_tickets.json')
+    ]);
+
+    const routedList = routed['Routed tickets'] || [];
+    const { run_id, timestamp, summary_processed, summary_errors, summary_routed,
+            category_counts, pareto_analysis, trends } = latest;
+
+    // Color palette for categories
+    const colors = ['#0f3460','#533483','#e94560','#1a1a2e','#16213e','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#14b8a6'];
+    const catColors = {};
+    (pareto_analysis || []).forEach((p,i) => { catColors[p.category] = colors[i % colors.length]; });
+
+    // Signal emoji
+    const signalIcon = s => s === 'riser' ? '📈' : s === 'faller' ? '📉' : '➖';
+
+    // Category name mapping
+    const catNames = {
+      'CAT_ACCESS_ACCOUNT': 'Access & Account',
+      'CAT_M365_COPILOT': 'M365 Copilot',
+      'CAT_GH_COPILOT': 'GitHub Copilot',
+      'CAT_SOFTWARE_INSTALL': 'Software Install',
+      'CAT_VPN_REMOTE': 'VPN & Remote',
+      'CAT_NETWORK_WIFI': 'Network & Wi‑Fi',
+      'CAT_HARDWARE_DEVICE': 'Device & Hardware',
+      'CAT_PRINTER': 'Printer & Scanning',
+      'CAT_ONBOARDING_HR': 'Onboarding / HR',
+      'CAT_PROCUREMENT_BILLING': 'Procurement / Billing',
+      'CAT_OTHER': 'Overig / Onbekend'
+    };
+    const cn = id => catNames[id] || id;
+
+    const maxPct = Math.max(...(pareto_analysis || []).map(p => p.percentage || 0), 1);
+
+    const headerDate = timestamp ? new Date(timestamp).toLocaleDateString('nl-NL', { year:'numeric', month:'long', day:'numeric' }) : '—';
+
+    app.innerHTML = `
+    <header>
+      <div>
+        <h1>🖥️ Helpdesk Overzicht</h1>
+        <div class="meta">Run: <strong>${run_id}</strong> &nbsp;|&nbsp; Rapport datum: ${headerDate}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <span class="badge processed">${summary_processed} verwerkt</span>
+        <span class="badge routed">${summary_routed} doorgezet</span>
+        <span class="badge errors">${summary_errors} fouten</span>
+      </div>
+    </header>
+
+    <div class="grid">
+
+      <div class="card">
+        <h2>📊 Pareto — Categorieën</h2>
+        <div id="pareto-list">
+          ${(pareto_analysis || []).map(p => `
+            <div class="category-bar" style="margin-bottom:8px">
+              <span class="label">${cn(p.category)}</span>
+              <div class="bar" style="width:${Math.round((p.percentage||0)/maxPct*100)}%;background:${catColors[p.category]||'#999'}"></div>
+              <span class="pct">${p.percentage}%</span>
+              <span style="font-size:12px;color:#999">(${p.count || p.count_category})</span>
+            </div>
+          `).join('') || '<div class="loading">Geen data</div>'}
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📈 Trends — Periodes</h2>
+        <table class="trends-table">
+          <thead><tr><th>Categorie</th><th>P1</th><th>P2</th><th>Δ</th><th>Signaal</th></tr></thead>
+          <tbody>
+            ${(trends || []).map(t => `
+              <tr>
+                <td>${cn(t.category)}</td>
+                <td>${t.period1_count}</td>
+                <td>${t.period2_count}</td>
+                <td style="font-weight:600;color:${t.difference>0?'#155724':t.difference<0?'#721c24':'#666'}">${t.difference>0?'+':''}${t.difference}</td>
+                <td><span class="signal ${t.signal}">${signalIcon(t.signal)} ${t.signal === 'riser' ? 'Stijgend' : t.signal === 'faller' ? 'Dalend' : 'Stabiel'}</span></td>
+              </tr>
+            `).join('') || '<tr><td colspan="5">Geen data</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card full">
+        <h2>🚀 Doorgezette tickets (${routedList.length})</h2>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>ID</th><th>Datum</th><th>Onderwerp</th><th>Categorie</th><th>Vertrouwen</th><th>Route</th><th>Antwoord</th></tr></thead>
+            <tbody>
+              ${routedList.slice(0, 30).map(t => `
+                <tr>
+                  <td style="font-weight:600">${t.id}</td>
+                  <td style="white-space:nowrap">${t.created_at ? t.created_at.substring(0,10) : ''}</td>
+                  <td>${t.subject || t.subject?.substring(0,60) || ''}</td>
+                  <td>${cn(t.category)}</td>
+                  <td><span class="signal ${t.confidence === 'high' ? 'riser' : t.confidence === 'medium' ? 'stable' : 'faller'}">${t.confidence}</span></td>
+                  <td style="font-size:12px">${t.route_to}</td>
+                  <td style="max-width:200px;font-size:12px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.draft_reply || ''}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          ${routedList.length > 30 ? `<div style="text-align:center;margin-top:8px;color:#999;font-size:13px">+ ${routedList.length - 30} meer</div>` : ''}
+        </div>
+      </div>
+
+      <div class="card full">
+        <h2>📋 Categorieën per dag (spreiding)</h2>
+        <table>
+          <thead><tr><th>Categorie</th><th>Aantal tickets</th><th>% van totaal</th></tr></thead>
+          <tbody>
+            ${Object.entries(category_counts || {}).sort((a,b) => b[1]-a[1]).map(([cat, count]) => `
+              <tr>
+                <td>${cn(cat)}</td>
+                <td>${count}</td>
+                <td>${summary_processed ? Math.round(count/summary_processed*100) : 0}%</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <footer style="text-align:center;margin-top:24px;font-size:12px;color:#999;padding:12px 0">
+      n8n Helpdesk Casus — ${run_id} &nbsp;|&nbsp; <a href="${BASE}/main/reports/latest.json" target="_blank">JSON rapport</a> &nbsp;|&nbsp; <a href="${BASE}/main/reports/routed_tickets.json" target="_blank">Doorgezette tickets</a>
+    </footer>
+    `;
+
+  } catch (err) {
+    app.innerHTML = `<div class="error">❌ Fout bij laden dashboard: ${err.message}</div>`;
+    console.error(err);
+  }
+})();
+</script>
+</body>
+</html>
