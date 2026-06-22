@@ -54,8 +54,9 @@
   const app = document.getElementById('app');
   const BASE = 'https://raw.githubusercontent.com/Loekie1103/educom-helpdesk-n8n-loek';
 
+  const ts = Date.now();
   async function fetchJSON(path) {
-    const r = await fetch(BASE + path);
+    const r = await fetch(BASE + path + '?t=' + ts);
     if (!r.ok) throw new Error(`HTTP ${r.status} fetching ${path}`);
     return r.json();
   }
@@ -96,7 +97,13 @@
 
     const maxPct = Math.max(...(pareto_analysis || []).map(p => p.percentage || 0), 1);
 
-    const headerDate = timestamp ? new Date(timestamp).toLocaleDateString('nl-NL', { year:'numeric', month:'long', day:'numeric' }) : '—';
+    // Parse timestamp: handle both "2026-05-11T22:00:00Z" and "2026-05-11 22:00:00"
+    function parseDate(s) {
+      if (!s) return null;
+      const d = s.includes('T') ? new Date(s) : new Date(s.replace(' ', 'T') + 'Z');
+      return isNaN(d.getTime()) ? s.substring(0,10) : d.toLocaleDateString('nl-NL', { year:'numeric', month:'long', day:'numeric' });
+    }
+    const headerDate = parseDate(timestamp);
 
     app.innerHTML = `
     <header>
