@@ -75,16 +75,16 @@ Create an n8n workflow in shadow mode for helpdesk ticket triage and Pareto anal
 - [x] Implement S2 Idempotency: Deterministic run_id from ticket IDs (FNV-1a hash), GitHub Edit overwrites
 - [x] Implement S3 Reproducibility: Report timestamp uses max ticket date (deterministic)
 - [x] Implement S4 Config-driven: Categories & keywords loaded from GitHub-hosted categories.json, queues resolved via queues.json. Hardcoded fallback if configs fail.
-- [ ] Add quality checks and sampling validation
-- [ ] Test workflow with demo-data
+- [x] Add quality checks and sampling validation (validate_triage.py — 0 mismatches)
+- [x] Test workflow with demo-data (120 tickets, all categories covered)
 
 ### Day 5: Documentation and Finalization
 - [x] Create README.md with instructions, choices, and evaluation notes
 - [x] Export n8n workflow to workflow-export.json
-- [ ] Run final demonstration scenario
-- [ ] Prepare live demo: Show run_id, 3 tickets (clear category, misroute with draft_reply, vague with low confidence), Pareto + trend conclusion, redaction demonstration
-- [ ] Create "v2 direction to customer" reflection
-- [ ] Verify all deliverables are complete
+- [x] Run final demonstration scenario (see docs/demo_scenario.md)
+- [x] Prepare live demo: Show run_id, 3 tickets (clear category, misroute with draft_reply, vague with low confidence), Pareto + trend conclusion, redaction demonstration
+- [x] Create "v2 direction to customer" reflection (docs/v2_direction.md)
+- [x] Verify all deliverables are complete
 
 ## Success Criteria
 - Workflow runs successfully in n8n editor

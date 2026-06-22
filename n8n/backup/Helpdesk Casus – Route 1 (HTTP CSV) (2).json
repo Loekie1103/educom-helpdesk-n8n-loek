@@ -7,10 +7,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -688,
-        80
+        1152,
+        560
       ],
-      "id": "e79267cc-f57e-4930-abd0-29d543e0b54c"
+      "id": "388de7e8-758a-4954-bc81-c518bf9e2b50"
     },
     {
       "parameters": {
@@ -22,10 +22,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [
-        -464,
-        -128
+        1376,
+        352
       ],
-      "id": "8386a927-d541-4f15-9f67-c68ea383e8de"
+      "id": "9e0658d2-5888-43e1-9c49-3445dfd3a0cf"
     },
     {
       "parameters": {
@@ -37,10 +37,10 @@
       "type": "n8n-nodes-base.spreadsheetFile",
       "typeVersion": 1,
       "position": [
-        -288,
-        -128
+        1552,
+        352
       ],
-      "id": "b123bada-3599-4e2f-8f9d-8e5e9a028763"
+      "id": "867e473c-f4d0-4850-8870-f25dbed820cf"
     },
     {
       "parameters": {
@@ -51,10 +51,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [
-        -464,
-        80
+        1376,
+        560
       ],
-      "id": "67379911-1daf-4ffd-814f-4eb00700c583"
+      "id": "6d52522e-df51-46ef-9bb8-df9ad4b57ae1"
     },
     {
       "parameters": {
@@ -65,23 +65,23 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [
-        -464,
-        304
+        1376,
+        784
       ],
-      "id": "262d6434-7a36-43e9-a7f6-441925cd6b0a"
+      "id": "e2fb07cf-7323-4cf7-98c3-df81a9a11541"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P2: PII Redaction & Date Formatting\n * Redacts PII and converts Excel decimal/serial date formats into clean ISO dates.\n */\nfunction excelDateToISO(serial) {\n  const num = parseFloat(serial);\n  if (isNaN(num)) return serial;\n  const excelEpoch = new Date(1899, 11, 30);\n  const days = Math.floor(num);\n  const ms = Math.round((num - days) * 24 * 60 * 60 * 1000);\n  const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000 + ms);\n  return date.toISOString().replace('T', ' ').substring(0, 19);\n}\n\n// Generate run_id for P8 Observability\nconst runId = Math.random().toString(36).substring(2, 11).toUpperCase();\n\nreturn items.map(item => {\n  let body = item.json.body || '';\n  let subject = item.json.subject || '';\n  let created_at = item.json.created_at || '';\n\n  // Convert date if it is an Excel serial format\n  if (created_at && !isNaN(parseFloat(created_at))) {\n    created_at = excelDateToISO(created_at);\n  }\n\n  // Regex for emails\n  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n  // Regex for Dutch phone numbers (e.g. 06-12345678, +31 6 12345678)\n  const phoneRegex = /(?:\\+31|0)(?:\\s?\\d){9}/g;\n  // Regex for BSN-like 9 digit strings\n  const bsnRegex = /\\b\\d{9}\\b/g;\n\n  body = body.replace(emailRegex, '[EMAIL_REDACTED]');\n  body = body.replace(phoneRegex, '[PHONE_REDACTED]');\n  body = body.replace(bsnRegex, '[BSN_REDACTED]');\n\n  subject = subject.replace(emailRegex, '[EMAIL_REDACTED]');\n  subject = subject.replace(phoneRegex, '[PHONE_REDACTED]');\n  subject = subject.replace(bsnRegex, '[BSN_REDACTED]');\n\n  return {\n    json: {\n      ...item.json,\n      run_id: runId,\n      created_at,\n      body,\n      subject\n    }\n  };\n});"
+        "jsCode": "/**\n * P2: PII Redaction & Date Formatting\n * Redacts PII and converts Excel decimal/serial date formats into clean ISO dates.\n */\nfunction excelDateToISO(serial) {\n  const num = parseFloat(serial);\n  if (isNaN(num)) return serial;\n  const excelEpoch = new Date(1899, 11, 30);\n  const days = Math.floor(num);\n  const ms = Math.round((num - days) * 24 * 60 * 60 * 1000);\n  const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000 + ms);\n  return date.toISOString().replace('T', ' ').substring(0, 19);\n}\n\n// Generate run_id for P8 Observability\n// S2 Idempotency & P8: Deterministic run_id from sorted ticket IDs (FNV-1a pure-JS)\nfunction fnvHash(str) {\n  let h = 14695981039346656037n;\n  for (let i = 0; i < str.length; i++) { h ^= BigInt(str.charCodeAt(i)); h *= 1099511628211n; }\n  return h.toString(16).padStart(16, '0').substring(0, 16);\n}\nconst allIds = items.map(item => item.json.id || '').sort().join('|');\nconst runId = 'RUN-' + fnvHash(allIds + '|' + items.length).toUpperCase();\n\nreturn items.map(item => {\n  let body = item.json.body || '';\n  let subject = item.json.subject || '';\n  let created_at = item.json.created_at || '';\n\n  // Convert date if it is an Excel serial format\n  if (created_at && !isNaN(parseFloat(created_at))) {\n    created_at = excelDateToISO(created_at);\n  }\n\n  // Regex for emails\n  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n  // Regex for Dutch phone numbers (e.g. 06-12345678, +31 6 12345678)\n  const phoneRegex = /(?:\\+31|0)(?:\\s?\\d){9}/g;\n  // Regex for BSN-like 9 digit strings\n  const bsnRegex = /\\b\\d{9}\\b/g;\n\n  body = body.replace(emailRegex, '[EMAIL_REDACTED]');\n  body = body.replace(phoneRegex, '[PHONE_REDACTED]');\n  body = body.replace(bsnRegex, '[BSN_REDACTED]');\n\n  subject = subject.replace(emailRegex, '[EMAIL_REDACTED]');\n  subject = subject.replace(phoneRegex, '[PHONE_REDACTED]');\n  subject = subject.replace(bsnRegex, '[BSN_REDACTED]');\n\n  return {\n    json: {\n      ...item.json,\n      run_id: runId,\n      created_at,\n      body,\n      subject\n    }\n  };\n});"
       },
       "name": "P2 - Redact PII",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -112,
-        -128
+        1728,
+        352
       ],
-      "id": "7eee09bf-f802-4c8b-b466-8739456efa5a"
+      "id": "2c531cfb-bd22-4589-ac4a-d3b022cb5cd9"
     },
     {
       "parameters": {
@@ -91,10 +91,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        256,
-        80
+        2096,
+        560
       ],
-      "id": "90b095a6-77a5-4757-8996-55074bd84974"
+      "id": "f30ac14c-846a-4a7e-8dfb-bab005f0dd36"
     },
     {
       "parameters": {
@@ -113,10 +113,10 @@
       "type": "n8n-nodes-base.itemLists",
       "typeVersion": 2.1,
       "position": [
-        576,
-        -112
+        2416,
+        368
       ],
-      "id": "00b5eca9-3881-4471-9368-b9e354cb093d"
+      "id": "39c47dd3-bdee-41c8-b767-156b581bb58d"
     },
     {
       "parameters": {
@@ -134,10 +134,10 @@
       "type": "n8n-nodes-base.sort",
       "typeVersion": 1,
       "position": [
-        784,
-        -112
+        2624,
+        368
       ],
-      "id": "d55aad47-3fc1-4915-b506-86eddd17d8c0"
+      "id": "bafb87c7-a097-460f-95f7-67f5fa6ee6d5"
     },
     {
       "parameters": {
@@ -165,10 +165,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
       "position": [
-        976,
-        -112
+        2816,
+        368
       ],
-      "id": "1a543ac7-25ad-4c54-a9df-820be7bfe142"
+      "id": "f9d446d5-0117-4799-a57a-a58b4e05acc4"
     },
     {
       "parameters": {
@@ -178,23 +178,23 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1184,
-        -112
+        3024,
+        368
       ],
-      "id": "3fd29a63-edd2-40d0-ac76-5a56af77b94d"
+      "id": "c25efc2c-be71-4a85-bc2e-e760c3e0ccf6"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P7 & P8: Observability and Report Compilation\n */\nconst runId = $('P2 - Redact PII').first().json.run_id;\nconst triageNode = $('P3 & P4 - Triage & Draft Reply');\nconst allTickets = triageNode.all().map(item => item.json);\n\nconst totalProcessed = allTickets.length;\nconst totalRouted = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').length;\nconst totalErrors = 0;\n\nconst catCounts = {};\nallTickets.forEach(t => { const cat = t.category || 'CAT_OTHER'; catCounts[cat] = (catCounts[cat] || 0) + 1; });\n\nconst pareto = $('P5 - Calculate Percentages').all().map(item => item.json);\nconst trends = $('P6 - Trend & Drift Analysis').all().map(item => item.json);\n\nreturn [{\n  json: {\n    run_id: runId,\n    timestamp: new Date().toISOString(),\n    summary_processed: totalProcessed,\n    summary_errors: totalErrors,\n    summary_routed: totalRouted,\n    category_counts: catCounts,\n    pareto_analysis: pareto,\n    trends: trends\n  }\n}];"
+        "jsCode": "/**\n * P7 & P8: Observability and Report Compilation\n */\nconst runId = $('P2 - Redact PII').first().json.run_id;\nconst triageNode = $('P3 & P4 - Triage & Draft Reply');\nconst allTickets = triageNode.all().map(item => item.json);\n\nconst totalProcessed = allTickets.length;\nconst totalRouted = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').length;\nconst totalErrors = 0;\n\nconst catCounts = {};\nallTickets.forEach(t => { const cat = t.category || 'CAT_OTHER'; catCounts[cat] = (catCounts[cat] || 0) + 1; });\n\nconst pareto = $('P5 - Calculate Percentages').all().map(item => item.json);\nconst trends = $('P6 - Trend & Drift Analysis').all().map(item => item.json);\n\nreturn [{\n  json: {\n    run_id: runId,\n    timestamp: allTickets.map(t => t.created_at).sort().pop() || new Date().toISOString(),\n    summary_processed: totalProcessed,\n    summary_errors: totalErrors,\n    summary_routed: totalRouted,\n    category_counts: catCounts,\n    pareto_analysis: pareto,\n    trends: trends\n  }\n}];"
       },
       "name": "P7 & P8 - Compile Observability Report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1376,
-        -112
+        3216,
+        368
       ],
-      "id": "d4abd740-32a0-41b3-b7fc-b680d68233b8"
+      "id": "90be1786-a5ba-4d43-918d-04d17c0ebc73"
     },
     {
       "parameters": {
@@ -204,10 +204,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        560,
-        240
+        2400,
+        720
       ],
-      "id": "d7793595-e188-43e8-8630-bb17d349e6c4"
+      "id": "33843abd-9bfb-46d2-98c2-608fe4c266fc"
     },
     {
       "parameters": {
@@ -217,10 +217,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        64,
-        64
+        1904,
+        544
       ],
-      "id": "76e448e3-d8df-4ad7-9ee3-88b6075e6bc1",
+      "id": "34437ff6-38a3-43ec-997e-c55c2bbe4d7f",
       "name": "Merge"
     },
     {
@@ -248,10 +248,10 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        1552,
-        -112
+        3392,
+        368
       ],
-      "id": "5704bf47-eac7-422d-8d75-6b64fb4c14f4",
+      "id": "afb7d555-e702-4b77-acdc-b59a89c76e5d",
       "name": "Edit a file1",
       "webhookId": "4a13d88d-b057-49cf-96ba-e2f3e85f050f",
       "credentials": {
@@ -286,10 +286,10 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        928,
-        240
+        2768,
+        720
       ],
-      "id": "6b091e58-502f-4688-a0f9-91d5c84fefee",
+      "id": "23559bb2-7064-4269-a2a3-ae7305d7bb3e",
       "name": "Edit a file",
       "webhookId": "0cc2172c-1176-4266-b342-ddfbaf05c310",
       "credentials": {
@@ -308,10 +308,10 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        752,
-        240
+        2592,
+        720
       ],
-      "id": "8af23cd1-57f6-4874-b235-079655055a47",
+      "id": "b467e9b8-ef65-474f-9c24-95068a2c4021",
       "name": "Aggregate"
     }
   ],
@@ -486,11 +486,6 @@
         ]
       ]
     },
-    "Edit a file": {
-      "main": [
-        []
-      ]
-    },
     "Aggregate": {
       "main": [
         [
@@ -512,7 +507,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "06c02747-c1ee-4976-818d-870e407691f5",
+  "versionId": "41181eb4-642e-47cc-bfdc-fe14856565b1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f705b3c706bbe3689e4e975952b6e01b6eb93a80fcd5a3a099acc6c333c1f690"
