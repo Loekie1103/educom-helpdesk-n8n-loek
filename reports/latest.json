@@ -1,6 +1,6 @@
 {
   "run_id": "RUN-CBF2A275FB3846B4",
-  "timestamp": "2026-06-23T07:28:24.829Z",
+  "timestamp": "2026-06-23T07:29:15.938Z",
   "summary_processed": 150,
   "summary_errors": 0,
   "summary_routed": 140,
@@ -21,68 +21,57 @@
     {
       "category": "CAT_ACCESS_ACCOUNT",
       "count_category": 29,
-      "percentage": 19,
-      "count": 29
+      "percentage": 19
     },
     {
       "category": "CAT_M365_COPILOT",
       "count_category": 20,
-      "percentage": 13,
-      "count": 20
+      "percentage": 13
     },
     {
       "category": "CAT_PROCUREMENT_BILLING",
       "count_category": 15,
-      "percentage": 10,
-      "count": 15
+      "percentage": 10
     },
     {
       "category": "CAT_GH_COPILOT",
       "count_category": 13,
-      "percentage": 9,
-      "count": 13
+      "percentage": 9
     },
     {
       "category": "CAT_PRINTER",
       "count_category": 12,
-      "percentage": 8,
-      "count": 12
+      "percentage": 8
     },
     {
       "category": "CAT_SOFTWARE_INSTALL",
       "count_category": 12,
-      "percentage": 8,
-      "count": 12
+      "percentage": 8
     },
     {
       "category": "CAT_ONBOARDING_HR",
       "count_category": 11,
-      "percentage": 7,
-      "count": 11
+      "percentage": 7
     },
     {
       "category": "CAT_VPN_REMOTE",
       "count_category": 10,
-      "percentage": 7,
-      "count": 10
+      "percentage": 7
     },
     {
       "category": "CAT_OTHER",
       "count_category": 10,
-      "percentage": 7,
-      "count": 10
+      "percentage": 7
     },
     {
       "category": "CAT_HARDWARE_DEVICE",
       "count_category": 10,
-      "percentage": 7,
-      "count": 10
+      "percentage": 7
     },
     {
       "category": "CAT_NETWORK_WIFI",
       "count_category": 8,
-      "percentage": 5,
-      "count": 8
+      "percentage": 5
     }
   ],
   "trends": [
