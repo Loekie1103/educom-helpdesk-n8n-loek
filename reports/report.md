@@ -23,17 +23,17 @@
 
 | Category | Period 1 | Period 2 | Delta | Signal |
 |----------|---------|---------|-------|--------|
-| Procurement / Billing | 10 | 5 | -5 | Faller /u2b07 |
-| Overig / Onbekend | 7 | 3 | -4 | Faller /u2b07 |
-| Software Install | 4 | 8 | +4 | Riser /u2b06 |
-| Onboarding / HR | 4 | 7 | +3 | Riser /u2b06 |
-| VPN & Remote | 4 | 6 | +2 | Riser /u2b06 |
-| Printer & Scanning | 7 | 5 | -2 | Faller /u2b07 |
-| Device & Hardware | 4 | 6 | +2 | Riser /u2b06 |
-| M365 Copilot | 9 | 11 | +2 | Riser /u2b06 |
-| Access & Account | 15 | 14 | -1 | Stable /u2795 |
-| GitHub Copilot | 7 | 6 | -1 | Stable /u2795 |
-| Network & Wi-Fi | 4 | 4 | 0 | Stable /u2795 |
+| Procurement / Billing | 10 | 5 | -5 | Faller ⬇ |
+| Overig / Onbekend | 7 | 3 | -4 | Faller ⬇ |
+| Software Install | 4 | 8 | +4 | Riser ⬆ |
+| Onboarding / HR | 4 | 7 | +3 | Riser ⬆ |
+| VPN & Remote | 4 | 6 | +2 | Riser ⬆ |
+| Printer & Scanning | 7 | 5 | -2 | Faller ⬇ |
+| Device & Hardware | 4 | 6 | +2 | Riser ⬆ |
+| M365 Copilot | 9 | 11 | +2 | Riser ⬆ |
+| Access & Account | 15 | 14 | -1 | Stable ➕ |
+| GitHub Copilot | 7 | 6 | -1 | Stable ➕ |
+| Network & Wi-Fi | 4 | 4 | 0 | Stable ➕ |
 
 ## Category Breakdown
 

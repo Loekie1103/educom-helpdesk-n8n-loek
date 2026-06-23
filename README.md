@@ -93,9 +93,9 @@ Start
 - Same dataset → same run_id → GitHub Edit overwrites → no duplicates on re-run.
 
 ### Reproducibility (S3)
-- Report `timestamp` uses the **max ticket date** in the dataset (not `Date.now()`).
+- Report `timestamp` records the **workflow execution time** (`Date.now()`) for actionable reporting.
 - All triage is keyword-based (deterministic — no LLM/API variance).
-- Combined with deterministic run_id, identical datasets produce **bit-identical reports**.
+- Combined with deterministic run_id, identical datasets produce **identical reports** (trends, Pareto, routing) except for the runtime timestamp.
 
 ### Config-Driven (S4)
 - Keywords come from `categories.json` (fetched at runtime).
