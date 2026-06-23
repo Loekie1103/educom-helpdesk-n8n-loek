@@ -69,7 +69,7 @@
 
     const routedList = routed['Routed tickets'] || [];
     const { run_id, timestamp, summary_processed, summary_errors, summary_routed,
-            category_counts, pareto_analysis, trends } = latest;
+            category_counts, pareto_analysis, trends, triage_stats } = latest;
 
     // Color palette for categories
     const colors = ['#0f3460','#533483','#e94560','#1a1a2e','#16213e','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#14b8a6'];
@@ -78,6 +78,22 @@
 
     // Signal emoji
     const signalIcon = s => s === 'riser' ? '📈' : s === 'faller' ? '📉' : '➖';
+
+    // Format confidence (v2 float 0.0–1.0, v1 string low/med/high)
+    function formatConfidence(c) {
+      if (typeof c === 'number') return Math.round(c * 100) + '%';
+      const map = { 'high': 'Hoog', 'medium': 'Middel', 'low': 'Laag' };
+      return map[c] || c;
+    }
+    function confidenceClass(c) {
+      if (typeof c === 'number') return c >= 0.7 ? 'riser' : c >= 0.35 ? 'stable' : 'faller';
+      const map = { 'high': 'riser', 'medium': 'stable', 'low': 'faller' };
+      return map[c] || 'stable';
+    }
+    function triageSrcLabel(s) {
+      const map = { 'llm': '🤖 LLM', 'keyword_fallback': '🔑 Keywords', 'error': '⚠️ Error' };
+      return map[s] || s;
+    }
 
     // Category name mapping
     const catNames = {
@@ -104,12 +120,16 @@
       return isNaN(d.getTime()) ? s.substring(0,10) : d.toLocaleDateString('nl-NL', { year:'numeric', month:'long', day:'numeric' });
     }
     const headerDate = parseDate(timestamp);
+    const triageLine = triage_stats
+      ? ` 🤖 LLM: ${triage_stats.llm || 0} &nbsp;|&nbsp; 🔑 Fallback: ${triage_stats.keyword_fallback || 0} &nbsp;|&nbsp; ⚠️ Error: ${triage_stats.error || 0}`
+      : '';
 
     app.innerHTML = `
     <header>
       <div>
         <h1>🖥️ Helpdesk Overzicht</h1>
         <div class="meta">Run: <strong>${run_id}</strong> &nbsp;|&nbsp; Rapport datum: ${headerDate}</div>
+        <div class="meta" style="margin-top:4px">Triage:${triageLine}</div>
       </div>
       <div style="display:flex;gap:8px">
         <span class="badge processed">${summary_processed} verwerkt</span>
@@ -156,7 +176,7 @@
         <h2>🚀 Doorgezette tickets (${routedList.length})</h2>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>ID</th><th>Datum</th><th>Onderwerp</th><th>Categorie</th><th>Vertrouwen</th><th>Route</th><th>Antwoord</th></tr></thead>
+             <thead><tr><th>ID</th><th>Datum</th><th>Onderwerp</th><th>Categorie</th><th>Vertrouwen</th><th>Triage</th><th>Route</th><th>Antwoord</th></tr></thead>
             <tbody>
               ${routedList.slice(0, 30).map(t => `
                 <tr>
@@ -164,7 +184,8 @@
                   <td style="white-space:nowrap">${t.created_at ? t.created_at.substring(0,10) : ''}</td>
                   <td>${t.subject || t.subject?.substring(0,60) || ''}</td>
                   <td>${cn(t.category)}</td>
-                  <td><span class="signal ${t.confidence === 'high' ? 'riser' : t.confidence === 'medium' ? 'stable' : 'faller'}">${t.confidence}</span></td>
+                  <td><span class="signal ${confidenceClass(t.confidence)}">${formatConfidence(t.confidence)}</span></td>
+                  <td><span class="signal stable" style="font-size:11px">${triageSrcLabel(t.triage_source)}</span></td>
                   <td style="font-size:12px">${t.route_to}</td>
                   <td style="max-width:200px;font-size:12px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.draft_reply || ''}</td>
                 </tr>
