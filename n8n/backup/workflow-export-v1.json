@@ -1,0 +1,586 @@
+{
+  "name": "Helpdesk Casus – Route 1 (HTTP CSV)",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -688,
+        80
+      ],
+      "id": "e79267cc-f57e-4930-abd0-29d543e0b54c"
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/Loekie1103/educom-helpdesk-n8n-loek/main/casus_data/demo-data/tickets.csv",
+        "responseFormat": "file",
+        "options": {}
+      },
+      "name": "HTTP Request - Get tickets.csv",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -128
+      ],
+      "id": "8386a927-d541-4f15-9f67-c68ea383e8de"
+    },
+    {
+      "parameters": {
+        "options": {
+          "headerRow": true
+        }
+      },
+      "name": "Parse CSV",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -128
+      ],
+      "id": "b123bada-3599-4e2f-8f9d-8e5e9a028763"
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/Loekie1103/educom-helpdesk-n8n-loek/main/casus_data/config/categories.json",
+        "options": {}
+      },
+      "name": "HTTP - Get categories.json",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        80
+      ],
+      "id": "67379911-1daf-4ffd-814f-4eb00700c583"
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/Loekie1103/educom-helpdesk-n8n-loek/main/casus_data/config/queues.json",
+        "options": {}
+      },
+      "name": "HTTP - Get queues.json",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        304
+      ],
+      "id": "262d6434-7a36-43e9-a7f6-441925cd6b0a"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P2: PII Redaction & Date Formatting\n * Redacts PII and converts Excel decimal/serial date formats into clean ISO dates.\n */\nfunction excelDateToISO(serial) {\n  const num = parseFloat(serial);\n  if (isNaN(num)) return serial;\n  const excelEpoch = new Date(1899, 11, 30);\n  const days = Math.floor(num);\n  const ms = Math.round((num - days) * 24 * 60 * 60 * 1000);\n  const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000 + ms);\n  return date.toISOString().replace('T', ' ').substring(0, 19);\n}\n\n// Generate run_id for P8 Observability\n// S2 Idempotency & P8: Deterministic run_id from sorted ticket IDs (FNV-1a pure-JS)\nfunction fnvHash(str) {\n  let h = 14695981039346656037n;\n  for (let i = 0; i < str.length; i++) { h ^= BigInt(str.charCodeAt(i)); h *= 1099511628211n; }\n  return h.toString(16).padStart(16, '0').substring(0, 16);\n}\nconst allIds = items.map(item => item.json.id || '').sort().join('|');\nconst runId = 'RUN-' + fnvHash(allIds + '|' + items.length).toUpperCase();\n\nreturn items.map(item => {\n  let body = item.json.body || '';\n  let subject = item.json.subject || '';\n  let created_at = item.json.created_at || '';\n\n  // Convert date if it is an Excel serial format\n  if (created_at && !isNaN(parseFloat(created_at))) {\n    created_at = excelDateToISO(created_at);\n  }\n\n  // Regex for emails\n  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n  // Regex for Dutch phone numbers (e.g. 06-12345678, +31 6 12345678)\n  const phoneRegex = /(?:\\+31|0)(?:\\s?\\d){9}/g;\n  // Regex for BSN-like 9 digit strings\n  const bsnRegex = /\\b\\d{9}\\b/g;\n\n  body = body.replace(emailRegex, '[EMAIL_REDACTED]');\n  body = body.replace(phoneRegex, '[PHONE_REDACTED]');\n  body = body.replace(bsnRegex, '[BSN_REDACTED]');\n\n  subject = subject.replace(emailRegex, '[EMAIL_REDACTED]');\n  subject = subject.replace(phoneRegex, '[PHONE_REDACTED]');\n  subject = subject.replace(bsnRegex, '[BSN_REDACTED]');\n\n  return {\n    json: {\n      ...item.json,\n      run_id: runId,\n      created_at,\n      body,\n      subject\n    }\n  };\n});"
+      },
+      "name": "P2 - Redact PII",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        -128
+      ],
+      "id": "7eee09bf-f802-4c8b-b466-8739456efa5a"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P3 Triage & P4 Concept Reply — S4 CONFIG-DRIVEN\n * Keywords: from categories.json, Queues: from queues.json\n * Routing: routingMap below; validated against queues.json at runtime\n * Merge node upstream ensures all inputs arrive together before this runs.\n */\n\n// Pull configs from upstream HTTP nodes (all available now due to Merge)\nconst categoriesConfig = $('HTTP - Get categories.json').first().json;\nconst queuesConfig = $('HTTP - Get queues.json').first().json;\n\nif (!categoriesConfig || !categoriesConfig.categories) throw new Error('Failed to load categories.json');\nif (!queuesConfig || !queuesConfig.queues) throw new Error('Failed to load queues.json');\n\n// Build valid-queue set from queues.json\nconst validQueues = new Set(queuesConfig.queues.map(q => q.id));\n\n// Category->Queue routing (single place to edit routing policy)\nconst routingMap = {\n  'CAT_ACCESS_ACCOUNT':    'Q_IDENTITY_ACCESS',\n  'CAT_M365_COPILOT':      'Q_M365',\n  'CAT_GH_COPILOT':        'Q_DEVELOPER_EXPERIENCE',\n  'CAT_SOFTWARE_INSTALL':  'Q_WORKPLACE',\n  'CAT_VPN_REMOTE':        'Q_NETWORK',\n  'CAT_NETWORK_WIFI':      'Q_NETWORK',\n  'CAT_HARDWARE_DEVICE':   'Q_WORKPLACE',\n  'CAT_PRINTER':           'Q_WORKPLACE',\n  'CAT_ONBOARDING_HR':     'Q_HR',\n  'CAT_PROCUREMENT_BILLING':'Q_FINANCE_PROCUREMENT',\n  'CAT_OTHER':             'Q_IT_SERVICE_DESK'\n};\n\n// Build category list from categories.json + routing map\nconst categories = categoriesConfig.categories.map(cat => {\n  const queueId = routingMap[cat.id] || 'Q_IT_SERVICE_DESK';\n  if (!validQueues.has(queueId)) {\n    throw new Error(\"Queue '\" + queueId + \"' for category '\" + cat.id + \"' not found in queues.json\");\n  }\n  return { id: cat.id, queue: queueId, keywords: cat.keywords || [] };\n});\n\n// Filter ticket items (from P2 pipeline) out of the merged items array\nconst ticketItems = items.filter(item => item.json.id !== undefined);\n\n// Process ticket items\nreturn ticketItems.map(item => {\n  const ticket = item.json;\n  const content = ((ticket.subject || '') + ' ' + (ticket.body || '')).toLowerCase();\n\n  let bestCat = null;\n  let maxMatches = 0;\n  categories.forEach(cat => {\n    let matches = 0;\n    cat.keywords.forEach(kw => {\n      if (content.includes(kw.toLowerCase())) matches++;\n    });\n    if (matches > maxMatches) { maxMatches = matches; bestCat = cat; }\n  });\n\n  let category = 'CAT_OTHER';\n  let confidence = 'low';\n  let route_to = 'Q_IT_SERVICE_DESK';\n  let route_reason = 'No clear keywords found, routed to main desk.';\n\n  if (bestCat) {\n    category = bestCat.id;\n    route_to = bestCat.queue;\n    if (maxMatches >= 3) {\n      confidence = 'high';\n      route_reason = 'Matched ' + maxMatches + ' keywords for ' + bestCat.id + '.';\n    } else if (maxMatches > 0) {\n      confidence = 'medium';\n      route_reason = 'Matched ' + maxMatches + ' keyword(s) for ' + bestCat.id + '.';\n    }\n  }\n\n  let draft_reply = '';\n  if (route_to !== 'Q_IT_SERVICE_DESK') {\n    draft_reply = 'Beste medewerker, Bedankt voor uw melding. We hebben uw ticket gecategoriseerd onder ' + category + ' en doorgezet naar het specialistische team (' + route_to + '). Zij nemen dit zo snel mogelijk in behandeling. Met vriendelijke groet, IT Service Desk Support';\n  }\n\n  return { json: { ...ticket, category, confidence, route_to, route_reason, draft_reply } };\n});"
+      },
+      "name": "P3 & P4 - Triage & Draft Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        256,
+        80
+      ],
+      "id": "90b095a6-77a5-4757-8996-55074bd84974"
+    },
+    {
+      "parameters": {
+        "operation": "summarize",
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "field": "category"
+            }
+          ]
+        },
+        "fieldsToSplitBy": "category",
+        "options": {}
+      },
+      "name": "P5 - Group Categories (Pareto Count)",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 2.1,
+      "position": [
+        576,
+        -112
+      ],
+      "id": "00b5eca9-3881-4471-9368-b9e354cb093d"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "count_category",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "P5 - Sort Categories Descending",
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        784,
+        -112
+      ],
+      "id": "d55aad47-3fc1-4915-b506-86eddd17d8c0"
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "percentage",
+              "value": "={{ Math.round(($json.count_category / $('P3 & P4 - Triage & Draft Reply').all().length) * 100) || 0 }}"
+            }
+          ],
+          "string": [
+            {
+              "name": "category",
+              "value": "={{ $json.category }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "P5 - Calculate Percentages",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        976,
+        -112
+      ],
+      "id": "1a543ac7-25ad-4c54-a9df-820be7bfe142"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P6 Trend & Drift Analysis\n * Splits tickets into Period 1 and Period 2 by date,\n * and analyzes rises/falls in category occurrences.\n */\nconst triageNode = $('P3 & P4 - Triage & Draft Reply');\nconst allTickets = triageNode.all().map(item => item.json);\n\nallTickets.sort((a, b) => {\n  const dateA = new Date(a.created_at || 0);\n  const dateB = new Date(b.created_at || 0);\n  return dateA - dateB;\n});\n\nconst midPoint = Math.floor(allTickets.length / 2);\nconst period1 = allTickets.slice(0, midPoint);\nconst period2 = allTickets.slice(midPoint);\n\nconst p1Counts = {};\nconst p2Counts = {};\n\nperiod1.forEach(t => { const cat = t.category || 'CAT_OTHER'; p1Counts[cat] = (p1Counts[cat] || 0) + 1; });\nperiod2.forEach(t => { const cat = t.category || 'CAT_OTHER'; p2Counts[cat] = (p2Counts[cat] || 0) + 1; });\n\nconst allCategories = new Set([...Object.keys(p1Counts), ...Object.keys(p2Counts)]);\nconst trends = [];\n\nallCategories.forEach(cat => {\n  const count1 = p1Counts[cat] || 0;\n  const count2 = p2Counts[cat] || 0;\n  const diff = count2 - count1;\n  let signal = 'stable';\n  if (diff > 1) signal = 'riser';\n  else if (diff < -1) signal = 'faller';\n  trends.push({ category: cat, period1_count: count1, period2_count: count2, difference: diff, signal: signal });\n});\n\ntrends.sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference));\nreturn trends.map(t => ({ json: t }));"
+      },
+      "name": "P6 - Trend & Drift Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        -112
+      ],
+      "id": "3fd29a63-edd2-40d0-ac76-5a56af77b94d"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P7 & P8: Observability and Report Compilation\n */\nconst runId = $('P2 - Redact PII').first().json.run_id;\nconst triageNode = $('P3 & P4 - Triage & Draft Reply');\nconst allTickets = triageNode.all().map(item => item.json);\n\nconst totalProcessed = allTickets.length;\nconst totalRouted = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').length;\nconst totalErrors = 0;\n\nconst catCounts = {};\nallTickets.forEach(t => { const cat = t.category || 'CAT_OTHER'; catCounts[cat] = (catCounts[cat] || 0) + 1; });\n\nconst pareto = $('P5 - Calculate Percentages').all().map(item => item.json);\nconst trends = $('P6 - Trend & Drift Analysis').all().map(item => item.json);\n\nreturn [{\n  json: {\n    run_id: runId,\n    timestamp: new Date().toISOString(),\n    summary_processed: totalProcessed,\n    summary_errors: totalErrors,\n    summary_routed: totalRouted,\n    category_counts: catCounts,\n    pareto_analysis: pareto,\n    trends: trends\n  }\n}];"
+      },
+      "name": "P7 & P8 - Compile Observability Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        -112
+      ],
+      "id": "d4abd740-32a0-41b3-b7fc-b680d68233b8"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P7 Routed Tickets List Compilation\n * S1: Data minimalization - FNV-1a hash (pure-JS, no require)\n */\nconst triageNode = $('P3 & P4 - Triage & Draft Reply');\nconst allTickets = triageNode.all().map(item => item.json);\n\nfunction fnvHash(str) {\n  let h = 14695981039346656037n;\n  for (let i = 0; i < str.length; i++) { h ^= BigInt(str.charCodeAt(i)); h *= 1099511628211n; }\n  return h.toString(16).padStart(16, '0').substring(0, 16);\n}\n\nconst routedTickets = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').map(t => ({\n  id: t.id, created_at: t.created_at, channel: t.channel, language: t.language,\n  requester_type: t.requester_type, subject: t.subject, category: t.category,\n  confidence: t.confidence, route_to: t.route_to, route_reason: t.route_reason,\n  draft_reply: t.draft_reply, body_fnva_hash: t.body ? fnvHash(t.body) : ''\n}));\n\nreturn routedTickets.map(t => ({ json: t }));"
+      },
+      "name": "P7 - Compile Routed Tickets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        560,
+        240
+      ],
+      "id": "d7793595-e188-43e8-8630-bb17d349e6c4"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        64,
+        64
+      ],
+      "id": "76e448e3-d8df-4ad7-9ee3-88b6075e6bc1",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "Loekie1103",
+          "mode": "list",
+          "cachedResultName": "Loekie1103",
+          "cachedResultUrl": "https://github.com/Loekie1103"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "educom-helpdesk-n8n-loek",
+          "mode": "list",
+          "cachedResultName": "educom-helpdesk-n8n-loek",
+          "cachedResultUrl": "https://github.com/Loekie1103/educom-helpdesk-n8n-loek"
+        },
+        "filePath": "reports/latest.json",
+        "fileContent": "={{ JSON.stringify($json, null, 2) }}",
+        "commitMessage": "=Update report - {{ $json.timestamp }}"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        1552,
+        -112
+      ],
+      "id": "5704bf47-eac7-422d-8d75-6b64fb4c14f4",
+      "name": "Edit a file1",
+      "webhookId": "4a13d88d-b057-49cf-96ba-e2f3e85f050f",
+      "credentials": {
+        "githubApi": {
+          "id": "2ExKsDV1uRdA7qUf",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "Loekie1103",
+          "mode": "list",
+          "cachedResultName": "Loekie1103",
+          "cachedResultUrl": "https://github.com/Loekie1103"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "educom-helpdesk-n8n-loek",
+          "mode": "list",
+          "cachedResultName": "educom-helpdesk-n8n-loek",
+          "cachedResultUrl": "https://github.com/Loekie1103/educom-helpdesk-n8n-loek"
+        },
+        "filePath": "reports/routed_tickets.json",
+        "fileContent": "={{ JSON.stringify($json, null, 2) }}",
+        "commitMessage": "=Routed tickets"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        928,
+        240
+      ],
+      "id": "6b091e58-502f-4688-a0f9-91d5c84fefee",
+      "name": "Edit a file",
+      "webhookId": "0cc2172c-1176-4266-b342-ddfbaf05c310",
+      "credentials": {
+        "githubApi": {
+          "id": "2ExKsDV1uRdA7qUf",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Routed tickets",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        752,
+        240
+      ],
+      "id": "8af23cd1-57f6-4874-b235-079655055a47",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P7: Format Markdown Report — human-readable report.md\n */\nconst latestNode = $('P7 & P8 - Compile Observability Report');\nconst reportJson = latestNode.first().json;\n\nconst runId = reportJson.run_id;\nconst ts = reportJson.timestamp;\nconst processed = reportJson.summary_processed;\nconst routed = reportJson.summary_routed;\nconst errors = reportJson.summary_errors;\nconst pareto = reportJson.pareto_analysis || [];\nconst trends = reportJson.trends || [];\nconst catCounts = reportJson.category_counts || {};\n\nconst catNames = {\n  'CAT_ACCESS_ACCOUNT': 'Access & Account',\n  'CAT_M365_COPILOT': 'M365 Copilot',\n  'CAT_GH_COPILOT': 'GitHub Copilot',\n  'CAT_SOFTWARE_INSTALL': 'Software Install',\n  'CAT_VPN_REMOTE': 'VPN & Remote',\n  'CAT_NETWORK_WIFI': 'Network & Wi-Fi',\n  'CAT_HARDWARE_DEVICE': 'Device & Hardware',\n  'CAT_PRINTER': 'Printer & Scanning',\n  'CAT_ONBOARDING_HR': 'Onboarding / HR',\n  'CAT_PROCUREMENT_BILLING': 'Procurement / Billing',\n  'CAT_OTHER': 'Overig / Onbekend'\n};\n\nconst cn = id => catNames[id] || id;\n\nlet md = `# Helpdesk Report — ${runId}\\n\\n`;\nmd += `**Report date:** ${ts}\\n`;\nmd += `**Tickets processed:** ${processed}  |  **Routed:** ${routed}  |  **Errors:** ${errors}\\n\\n`;\n\n// Pareto table\nmd += `## Pareto Analysis\\n\\n`;\nmd += `| # | Category | Count | % |\\n`;\nmd += `|---|----------|-------|---|\\n`;\npareto.forEach((p, i) => {\n  md += `| ${i+1} | ${cn(p.category)} | ${p.count_category} | ${p.percentage}% |\\n`;\n});\n\n// Trends table\nmd += `\\n## Trends\\n\\n`;\nmd += `| Category | Period 1 | Period 2 | Delta | Signal |\\n`;\nmd += `|----------|---------|---------|-------|--------|\\n`;\ntrends.forEach(t => {\n  const signal = t.signal === 'riser' ? 'Riser ⬆' : t.signal === 'faller' ? 'Faller ⬇' : 'Stable ➕';\n  md += `| ${cn(t.category)} | ${t.period1_count} | ${t.period2_count} | ${t.difference > 0 ? '+' : ''}${t.difference} | ${signal} |\\n`;\n});\n\n// Category counts\nmd += `\\n## Category Breakdown\\n\\n`;\nmd += `| Category | Count | % |\\n`;\nmd += `|----------|-------|---|\\n`;\nObject.entries(catCounts).sort((a,b) => b[1]-a[1]).forEach(([cat, count]) => {\n  const pct = processed > 0 ? Math.round(count / processed * 100) : 0;\n  md += `| ${cn(cat)} | ${count} | ${pct}% |\\n`;\n});\n\nmd += `\\n---\\n_Generated by n8n Helpdesk Casus — Route 1 (HTTP CSV)_\\n`;\n\nreturn [{ json: { content: md } }];"
+      },
+      "name": "P7 - Format Markdown Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        80
+      ],
+      "id": "md-format-001"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "Loekie1103",
+          "mode": "list",
+          "cachedResultName": "Loekie1103",
+          "cachedResultUrl": "https://github.com/Loekie1103"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "educom-helpdesk-n8n-loek",
+          "mode": "list",
+          "cachedResultName": "educom-helpdesk-n8n-loek",
+          "cachedResultUrl": "https://github.com/Loekie1103/educom-helpdesk-n8n-loek"
+        },
+        "filePath": "reports/report.md",
+        "fileContent": "={{ $json.content }}",
+        "commitMessage": "=Update report.md - {{ $('P7 & P8 - Compile Observability Report').first().json.run_id }}"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        1728,
+        80
+      ],
+      "id": "md-github-001",
+      "webhookId": "md-webhook-001",
+      "credentials": {
+        "githubApi": {
+          "id": "2ExKsDV1uRdA7qUf",
+          "name": "GitHub account"
+        }
+      },
+      "name": "Edit a file (report.md)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Get tickets.csv",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP - Get categories.json",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP - Get queues.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Get tickets.csv": {
+      "main": [
+        [
+          {
+            "node": "Parse CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Get categories.json": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTTP - Get queues.json": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Parse CSV": {
+      "main": [
+        [
+          {
+            "node": "P2 - Redact PII",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P2 - Redact PII": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P3 & P4 - Triage & Draft Reply": {
+      "main": [
+        [
+          {
+            "node": "P5 - Group Categories (Pareto Count)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "P7 - Compile Routed Tickets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P5 - Group Categories (Pareto Count)": {
+      "main": [
+        [
+          {
+            "node": "P5 - Sort Categories Descending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P5 - Sort Categories Descending": {
+      "main": [
+        [
+          {
+            "node": "P5 - Calculate Percentages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P5 - Calculate Percentages": {
+      "main": [
+        [
+          {
+            "node": "P6 - Trend & Drift Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P6 - Trend & Drift Analysis": {
+      "main": [
+        [
+          {
+            "node": "P7 & P8 - Compile Observability Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "P3 & P4 - Triage & Draft Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P7 & P8 - Compile Observability Report": {
+      "main": [
+        [
+          {
+            "node": "Edit a file1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "P7 - Format Markdown Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P7 - Compile Routed Tickets": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit a file": {
+      "main": [
+        []
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Edit a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P7 - Format Markdown Report": {
+      "main": [
+        [
+          {
+            "node": "Edit a file (report.md)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Europe/Amsterdam",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "06c02747-c1ee-4976-818d-870e407691f5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f705b3c706bbe3689e4e975952b6e01b6eb93a80fcd5a3a099acc6c333c1f690"
+  },
+  "nodeGroups": [],
+  "id": "gz7qNyxnPUa87hrk",
+  "tags": []
+}
