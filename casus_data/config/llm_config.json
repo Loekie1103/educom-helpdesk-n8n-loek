@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "base_url": "https://api.openai.com/v1",
+  "temperature": 0.1,
+  "max_tokens": 300,
+  "mini_batch_size": 5,
+  "fallback_enabled": true,
+  "prompt_template": {
+    "system": "You are a helpdesk ticket classifier operating in shadow mode. Your task is to classify each ticket into exactly one category from the provided list. You must respond with valid JSON only — no other text.",
+    "user": "Classify the following helpdesk ticket into exactly one category from the list below.\n\nAvailable categories:\n{{categories}}\n\nTicket:\n- Subject: {{subject}}\n- Body: {{body}}\n\nRespond with this exact JSON structure:\n{\n  \"category\": \"CAT_XXX\",\n  \"confidence\": 0.0-1.0,\n  \"reason\": \"1-2 sentence explanation in the ticket's language\"\n}"
+  }
+}
