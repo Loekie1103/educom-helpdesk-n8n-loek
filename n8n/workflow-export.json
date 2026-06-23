@@ -1,5 +1,5 @@
 {
-  "name": "Helpdesk Casus – Route 1 (HTTP CSV)",
+  "name": "Helpdesk Casus – Route 1 (HTTP CSV) [v2 LLM]",
   "nodes": [
     {
       "parameters": {},
@@ -72,6 +72,20 @@
     },
     {
       "parameters": {
+        "url": "https://raw.githubusercontent.com/Loekie1103/educom-helpdesk-n8n-loek/main/casus_data/config/llm_config.json",
+        "options": {}
+      },
+      "name": "HTTP - Get llm_config.json",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        528
+      ],
+      "id": "llm-config-http-001"
+    },
+    {
+      "parameters": {
         "jsCode": "/**\n * P2: PII Redaction & Date Formatting\n * Redacts PII and converts Excel decimal/serial date formats into clean ISO dates.\n */\nfunction excelDateToISO(serial) {\n  const num = parseFloat(serial);\n  if (isNaN(num)) return serial;\n  const excelEpoch = new Date(1899, 11, 30);\n  const days = Math.floor(num);\n  const ms = Math.round((num - days) * 24 * 60 * 60 * 1000);\n  const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000 + ms);\n  return date.toISOString().replace('T', ' ').substring(0, 19);\n}\n\n// Generate run_id for P8 Observability\n// S2 Idempotency & P8: Deterministic run_id from sorted ticket IDs (FNV-1a pure-JS)\nfunction fnvHash(str) {\n  let h = 14695981039346656037n;\n  for (let i = 0; i < str.length; i++) { h ^= BigInt(str.charCodeAt(i)); h *= 1099511628211n; }\n  return h.toString(16).padStart(16, '0').substring(0, 16);\n}\nconst allIds = items.map(item => item.json.id || '').sort().join('|');\nconst runId = 'RUN-' + fnvHash(allIds + '|' + items.length).toUpperCase();\n\nreturn items.map(item => {\n  let body = item.json.body || '';\n  let subject = item.json.subject || '';\n  let created_at = item.json.created_at || '';\n\n  // Convert date if it is an Excel serial format\n  if (created_at && !isNaN(parseFloat(created_at))) {\n    created_at = excelDateToISO(created_at);\n  }\n\n  // Regex for emails\n  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n  // Regex for Dutch phone numbers (e.g. 06-12345678, +31 6 12345678)\n  const phoneRegex = /(?:\\+31|0)(?:\\s?\\d){9}/g;\n  // Regex for BSN-like 9 digit strings\n  const bsnRegex = /\\b\\d{9}\\b/g;\n\n  body = body.replace(emailRegex, '[EMAIL_REDACTED]');\n  body = body.replace(phoneRegex, '[PHONE_REDACTED]');\n  body = body.replace(bsnRegex, '[BSN_REDACTED]');\n\n  subject = subject.replace(emailRegex, '[EMAIL_REDACTED]');\n  subject = subject.replace(phoneRegex, '[PHONE_REDACTED]');\n  subject = subject.replace(bsnRegex, '[BSN_REDACTED]');\n\n  return {\n    json: {\n      ...item.json,\n      run_id: runId,\n      created_at,\n      body,\n      subject\n    }\n  };\n});"
       },
       "name": "P2 - Redact PII",
@@ -85,16 +99,83 @@
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P3 Triage & P4 Concept Reply — S4 CONFIG-DRIVEN\n * Keywords: from categories.json, Queues: from queues.json\n * Routing: routingMap below; validated against queues.json at runtime\n * Merge node upstream ensures all inputs arrive together before this runs.\n */\n\n// Pull configs from upstream HTTP nodes (all available now due to Merge)\nconst categoriesConfig = $('HTTP - Get categories.json').first().json;\nconst queuesConfig = $('HTTP - Get queues.json').first().json;\n\nif (!categoriesConfig || !categoriesConfig.categories) throw new Error('Failed to load categories.json');\nif (!queuesConfig || !queuesConfig.queues) throw new Error('Failed to load queues.json');\n\n// Build valid-queue set from queues.json\nconst validQueues = new Set(queuesConfig.queues.map(q => q.id));\n\n// Category->Queue routing (single place to edit routing policy)\nconst routingMap = {\n  'CAT_ACCESS_ACCOUNT':    'Q_IDENTITY_ACCESS',\n  'CAT_M365_COPILOT':      'Q_M365',\n  'CAT_GH_COPILOT':        'Q_DEVELOPER_EXPERIENCE',\n  'CAT_SOFTWARE_INSTALL':  'Q_WORKPLACE',\n  'CAT_VPN_REMOTE':        'Q_NETWORK',\n  'CAT_NETWORK_WIFI':      'Q_NETWORK',\n  'CAT_HARDWARE_DEVICE':   'Q_WORKPLACE',\n  'CAT_PRINTER':           'Q_WORKPLACE',\n  'CAT_ONBOARDING_HR':     'Q_HR',\n  'CAT_PROCUREMENT_BILLING':'Q_FINANCE_PROCUREMENT',\n  'CAT_OTHER':             'Q_IT_SERVICE_DESK'\n};\n\n// Build category list from categories.json + routing map\nconst categories = categoriesConfig.categories.map(cat => {\n  const queueId = routingMap[cat.id] || 'Q_IT_SERVICE_DESK';\n  if (!validQueues.has(queueId)) {\n    throw new Error(\"Queue '\" + queueId + \"' for category '\" + cat.id + \"' not found in queues.json\");\n  }\n  return { id: cat.id, queue: queueId, keywords: cat.keywords || [] };\n});\n\n// Filter ticket items (from P2 pipeline) out of the merged items array\nconst ticketItems = items.filter(item => item.json.id !== undefined);\n\n// Process ticket items\nreturn ticketItems.map(item => {\n  const ticket = item.json;\n  const content = ((ticket.subject || '') + ' ' + (ticket.body || '')).toLowerCase();\n\n  let bestCat = null;\n  let maxMatches = 0;\n  categories.forEach(cat => {\n    let matches = 0;\n    cat.keywords.forEach(kw => {\n      if (content.includes(kw.toLowerCase())) matches++;\n    });\n    if (matches > maxMatches) { maxMatches = matches; bestCat = cat; }\n  });\n\n  let category = 'CAT_OTHER';\n  let confidence = 'low';\n  let route_to = 'Q_IT_SERVICE_DESK';\n  let route_reason = 'No clear keywords found, routed to main desk.';\n\n  if (bestCat) {\n    category = bestCat.id;\n    route_to = bestCat.queue;\n    if (maxMatches >= 3) {\n      confidence = 'high';\n      route_reason = 'Matched ' + maxMatches + ' keywords for ' + bestCat.id + '.';\n    } else if (maxMatches > 0) {\n      confidence = 'medium';\n      route_reason = 'Matched ' + maxMatches + ' keyword(s) for ' + bestCat.id + '.';\n    }\n  }\n\n  let draft_reply = '';\n  if (route_to !== 'Q_IT_SERVICE_DESK') {\n    draft_reply = 'Beste medewerker, Bedankt voor uw melding. We hebben uw ticket gecategoriseerd onder ' + category + ' en doorgezet naar het specialistische team (' + route_to + '). Zij nemen dit zo snel mogelijk in behandeling. Met vriendelijke groet, IT Service Desk Support';\n  }\n\n  return { json: { ...ticket, category, confidence, route_to, route_reason, draft_reply } };\n});"
+        "mode": "chooseBranch",
+        "numberInputs": 4
       },
-      "name": "P3 & P4 - Triage & Draft Reply",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        64,
+        64
+      ],
+      "id": "76e448e3-d8df-4ad7-9ee3-88b6075e6bc1",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P3a: Prepare LLM Batches\n * Groups tickets into mini-batches (size from llm_config.json),\n * formats OpenAI-compatible payloads for the HTTP Request node.\n */\nconst categoriesConfigNode = $('HTTP - Get categories.json');\nconst categoriesConfig = categoriesConfigNode.first().json;\nconst llmConfigNode = $('HTTP - Get llm_config.json');\nconst llmConfig = llmConfigNode.first().json;\n\nif (!categoriesConfig || !categoriesConfig.categories) throw new Error('Failed to load categories.json');\nif (!llmConfig || !llmConfig.model) throw new Error('Failed to load llm_config.json');\n\n// Filter ticket items from merged items (tickets have an 'id' field)\nconst ticketItems = items.filter(item => item.json.id !== undefined);\nconst batchSize = llmConfig.mini_batch_size || 5;\n\n// Build category list for the prompt\nconst catList = categoriesConfig.categories.map(c =>\n  c.id + ': ' + c.name + ' — ' + c.description\n).join('\\n');\n\nconst systemPrompt = llmConfig.prompt_template.system;\n\n// Group tickets into batches\nconst batches = [];\nfor (let i = 0; i < ticketItems.length; i += batchSize) {\n  const batch = ticketItems.slice(i, i + batchSize);\n  \n  // Build user prompt with all tickets in this batch\n  let ticketsBlock = '';\n  batch.forEach((item, idx) => {\n    const t = item.json;\n    ticketsBlock += '--- Ticket ' + (idx + 1) + ' ---\\n';\n    ticketsBlock += 'Subject: ' + (t.subject || 'N/A') + '\\n';\n    ticketsBlock += 'Body: ' + (t.body || 'N/A') + '\\n\\n';\n  });\n\n  const userPrompt = llmConfig.prompt_template.user\n    .replace('{{categories}}', catList)\n    .replace('{{subject}}', '')\n    .replace('{{body}}', ticketsBlock.trim());\n\n  batches.push({\n    json: {\n      base_url: llmConfig.base_url,\n      _batch_index: i / batchSize,\n      _ticket_count: batch.length,\n      _ticket_ids: batch.map(item => item.json.id),\n      _tickets: batch.map(item => item.json),\n      body: {\n        model: llmConfig.model,\n        temperature: llmConfig.temperature || 0.1,\n        max_tokens: llmConfig.max_tokens || 500,\n        messages: [\n          { role: 'system', content: systemPrompt },\n          { role: 'user', content: userPrompt }\n        ]\n      }\n    }\n  });\n}\n\nreturn batches;"
+      },
+      "name": "P3a - Prepare LLM Batches",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
         256,
-        80
+        -48
       ],
-      "id": "90b095a6-77a5-4757-8996-55074bd84974"
+      "id": "p3a-prepare-llm-001"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.base_url }}/chat/completions",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "name": "P3b - LLM Triage HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        464,
+        -48
+      ],
+      "id": "p3b-llm-http-001",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OPENAI_CREDENTIAL_ID_PLACEHOLDER",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P3c: Unpack LLM Responses, Fallback & Route\n * Parses LLM batch responses, applies keyword fallback on failure,\n * maps categories to queues, generates draft replies.\n */\n\n// Get configs and original batch data\nconst categoriesConfig = $('HTTP - Get categories.json').first().json;\nconst queuesConfig = $('HTTP - Get queues.json').first().json;\nconst llmConfig = $('HTTP - Get llm_config.json').first().json;\nconst batchNode = $('P3a - Prepare LLM Batches');\nconst batchData = batchNode.all().map(item => item.json);\n\nif (!categoriesConfig || !categoriesConfig.categories) throw new Error('Failed to load categories.json');\nif (!queuesConfig || !queuesConfig.queues) throw new Error('Failed to load queues.json');\n\n// Build valid-queue set from queues.json\nconst validQueues = new Set(queuesConfig.queues.map(q => q.id));\n\n// Category->Queue routing map\nconst routingMap = {\n  'CAT_ACCESS_ACCOUNT':    'Q_IDENTITY_ACCESS',\n  'CAT_M365_COPILOT':      'Q_M365',\n  'CAT_GH_COPILOT':        'Q_DEVELOPER_EXPERIENCE',\n  'CAT_SOFTWARE_INSTALL':  'Q_WORKPLACE',\n  'CAT_VPN_REMOTE':        'Q_NETWORK',\n  'CAT_NETWORK_WIFI':      'Q_NETWORK',\n  'CAT_HARDWARE_DEVICE':   'Q_WORKPLACE',\n  'CAT_PRINTER':           'Q_WORKPLACE',\n  'CAT_ONBOARDING_HR':     'Q_HR',\n  'CAT_PROCUREMENT_BILLING':'Q_FINANCE_PROCUREMENT',\n  'CAT_OTHER':             'Q_IT_SERVICE_DESK'\n};\n\n// Build keyword-fallback lookup from categories.json\nconst keywordCategories = categoriesConfig.categories.map(cat => {\n  const queueId = routingMap[cat.id] || 'Q_IT_SERVICE_DESK';\n  if (!validQueues.has(queueId)) {\n    throw new Error(\"Queue '\" + queueId + \"' for category '\" + cat.id + \"' not found in queues.json\");\n  }\n  return { id: cat.id, queue: queueId, keywords: cat.keywords || [] };\n});\n\n// Run keyword-based fallback for a single ticket\nfunction keywordFallback(ticket) {\n  const content = ((ticket.subject || '') + ' ' + (ticket.body || '')).toLowerCase();\n  let bestCat = null;\n  let maxMatches = 0;\n  keywordCategories.forEach(cat => {\n    let matches = 0;\n    cat.keywords.forEach(kw => {\n      if (content.includes(kw.toLowerCase())) matches++;\n    });\n    if (matches > maxMatches) { maxMatches = matches; bestCat = cat; }\n  });\n\n  if (bestCat && maxMatches > 0) {\n    let conf = maxMatches >= 3 ? 0.85 : maxMatches >= 2 ? 0.6 : 0.35;\n    return {\n      category: bestCat.id,\n      confidence: conf,\n      route_to: bestCat.queue,\n      route_reason: 'Keyword fallback: matched ' + maxMatches + ' keyword(s) for ' + bestCat.id + '.',\n      triage_source: 'keyword_fallback'\n    };\n  }\n  return {\n    category: 'CAT_OTHER',\n    confidence: 0.1,\n    route_to: 'Q_IT_SERVICE_DESK',\n    route_reason: 'No keywords matched, routed to main desk.',\n    triage_source: 'keyword_fallback'\n  };\n}\n\n// Parse LLM response text into classification objects\nfunction parseLLMResponse(text) {\n  try {\n    // Try to extract JSON array or object from response\n    let jsonStr = text.trim();\n    // Remove markdown code fences if present\n    jsonStr = jsonStr.replace(/^```(?:json)?\\s*/i, '').replace(/\\s*```$/i, '');\n    const parsed = JSON.parse(jsonStr);\n    // If it's a single object, wrap in array\n    if (!Array.isArray(parsed)) {\n      return [parsed];\n    }\n    return parsed;\n  } catch (e) {\n    return null;\n  }\n}\n\n// Validate a single classification against known categories\nfunction validateClassification(cls) {\n  if (!cls || typeof cls.category !== 'string') return false;\n  const validCatIds = new Set(categoriesConfig.categories.map(c => c.id));\n  if (!validCatIds.has(cls.category)) return false;\n  if (typeof cls.confidence !== 'number' || cls.confidence < 0 || cls.confidence > 1) return false;\n  return true;\n}\n\n// Process each batch: match LLM response(s) to original tickets\nconst allOutputTickets = [];\n\nitems.forEach((llmResponseItem, batchIdx) => {\n  const batchEntry = batchData[batchIdx];\n  const tickets = batchEntry ? batchEntry._tickets : [];\n  const llmJson = llmResponseItem.json;\n  const statusCode = llmResponseItem.json ? 200 : 0;\n  \n  let llmClassifications = null;\n  let llmSuccess = false;\n  \n  // Parse LLM response - check if it's an OpenAI response or raw JSON\n  if (llmJson && llmJson.choices && Array.isArray(llmJson.choices)) {\n    // Standard OpenAI response format\n    const content = llmJson.choices[0]?.message?.content || '';\n    llmClassifications = parseLLMResponse(content);\n    llmSuccess = llmClassifications !== null && llmClassifications.length > 0;\n  } else if (llmJson && typeof llmJson === 'object') {\n    // Might be direct JSON response (some proxies)\n    llmClassifications = parseLLMResponse(JSON.stringify(llmJson));\n    llmSuccess = llmClassifications !== null && llmClassifications.length > 0;\n  }\n  \n  // Process each ticket in the batch\n  tickets.forEach((ticket, ticketIdx) => {\n    let classification = null;\n    \n    if (llmSuccess && llmClassifications && ticketIdx < llmClassifications.length) {\n      const cls = llmClassifications[ticketIdx];\n      if (validateClassification(cls)) {\n        const queueId = routingMap[cls.category] || 'Q_IT_SERVICE_DESK';\n        classification = {\n          category: cls.category,\n          confidence: cls.confidence,\n          route_to: queueId,\n          route_reason: cls.reason || ('LLM classified as ' + cls.category),\n          triage_source: 'llm'\n        };\n      }\n    }\n    \n    // Fallback if LLM failed or invalid classification\n    if (!classification && llmConfig.fallback_enabled !== false) {\n      classification = keywordFallback(ticket);\n    } else if (!classification) {\n      classification = {\n        category: 'CAT_OTHER',\n        confidence: 0.0,\n        route_to: 'Q_IT_SERVICE_DESK',\n        route_reason: 'LLM failed and fallback is disabled.',\n        triage_source: 'error'\n      };\n    }\n    \n    // Generate draft_reply for non-default-queue tickets\n    let draft_reply = '';\n    if (classification.route_to !== 'Q_IT_SERVICE_DESK') {\n      draft_reply = 'Beste medewerker, Bedankt voor uw melding. We hebben uw ticket gecategoriseerd onder ' + classification.category + ' en doorgezet naar het specialistische team (' + classification.route_to + '). Zij nemen dit zo snel mogelijk in behandeling. Met vriendelijke groet, IT Service Desk Support';\n    }\n    \n    allOutputTickets.push({\n      json: {\n        ...ticket,\n        category: classification.category,\n        confidence: classification.confidence,\n        route_to: classification.route_to,\n        route_reason: classification.route_reason,\n        triage_source: classification.triage_source,\n        draft_reply: draft_reply\n      }\n    });\n  });\n});\n\nreturn allOutputTickets;"
+      },
+      "name": "P3c - Unpack, Fallback & Route",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -48
+      ],
+      "id": "p3c-unpack-fallback-route-001"
     },
     {
       "parameters": {
@@ -113,8 +194,8 @@
       "type": "n8n-nodes-base.itemLists",
       "typeVersion": 2.1,
       "position": [
-        576,
-        -112
+        880,
+        -160
       ],
       "id": "00b5eca9-3881-4471-9368-b9e354cb093d"
     },
@@ -134,8 +215,8 @@
       "type": "n8n-nodes-base.sort",
       "typeVersion": 1,
       "position": [
-        784,
-        -112
+        1088,
+        -160
       ],
       "id": "d55aad47-3fc1-4915-b506-86eddd17d8c0"
     },
@@ -145,7 +226,7 @@
           "number": [
             {
               "name": "percentage",
-              "value": "={{ Math.round(($json.count_category / $('P3 & P4 - Triage & Draft Reply').all().length) * 100) || 0 }}"
+              "value": "={{ Math.round(($json.count_category / $('P3c - Unpack, Fallback & Route').all().length) * 100) || 0 }}"
             }
           ],
           "string": [
@@ -161,63 +242,49 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
       "position": [
-        976,
-        -112
+        1280,
+        -160
       ],
       "id": "1a543ac7-25ad-4c54-a9df-820be7bfe142"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P6 Trend & Drift Analysis\n * Splits tickets into Period 1 and Period 2 by date,\n * and analyzes rises/falls in category occurrences.\n */\nconst triageNode = $('P3 & P4 - Triage & Draft Reply');\nconst allTickets = triageNode.all().map(item => item.json);\n\nallTickets.sort((a, b) => {\n  const dateA = new Date(a.created_at || 0);\n  const dateB = new Date(b.created_at || 0);\n  return dateA - dateB;\n});\n\nconst midPoint = Math.floor(allTickets.length / 2);\nconst period1 = allTickets.slice(0, midPoint);\nconst period2 = allTickets.slice(midPoint);\n\nconst p1Counts = {};\nconst p2Counts = {};\n\nperiod1.forEach(t => { const cat = t.category || 'CAT_OTHER'; p1Counts[cat] = (p1Counts[cat] || 0) + 1; });\nperiod2.forEach(t => { const cat = t.category || 'CAT_OTHER'; p2Counts[cat] = (p2Counts[cat] || 0) + 1; });\n\nconst allCategories = new Set([...Object.keys(p1Counts), ...Object.keys(p2Counts)]);\nconst trends = [];\n\nallCategories.forEach(cat => {\n  const count1 = p1Counts[cat] || 0;\n  const count2 = p2Counts[cat] || 0;\n  const diff = count2 - count1;\n  let signal = 'stable';\n  if (diff > 1) signal = 'riser';\n  else if (diff < -1) signal = 'faller';\n  trends.push({ category: cat, period1_count: count1, period2_count: count2, difference: diff, signal: signal });\n});\n\ntrends.sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference));\nreturn trends.map(t => ({ json: t }));"
+        "jsCode": "/**\n * P6 Trend & Drift Analysis\n * Splits tickets into Period 1 and Period 2 by date,\n * and analyzes rises/falls in category occurrences.\n */\nconst triageNode = $('P3c - Unpack, Fallback & Route');\nconst allTickets = triageNode.all().map(item => item.json);\n\nallTickets.sort((a, b) => {\n  const dateA = new Date(a.created_at || 0);\n  const dateB = new Date(b.created_at || 0);\n  return dateA - dateB;\n});\n\nconst midPoint = Math.floor(allTickets.length / 2);\nconst period1 = allTickets.slice(0, midPoint);\nconst period2 = allTickets.slice(midPoint);\n\nconst p1Counts = {};\nconst p2Counts = {};\n\nperiod1.forEach(t => { const cat = t.category || 'CAT_OTHER'; p1Counts[cat] = (p1Counts[cat] || 0) + 1; });\nperiod2.forEach(t => { const cat = t.category || 'CAT_OTHER'; p2Counts[cat] = (p2Counts[cat] || 0) + 1; });\n\nconst allCategories = new Set([...Object.keys(p1Counts), ...Object.keys(p2Counts)]);\nconst trends = [];\n\nallCategories.forEach(cat => {\n  const count1 = p1Counts[cat] || 0;\n  const count2 = p2Counts[cat] || 0;\n  const diff = count2 - count1;\n  let signal = 'stable';\n  if (diff > 1) signal = 'riser';\n  else if (diff < -1) signal = 'faller';\n  trends.push({ category: cat, period1_count: count1, period2_count: count2, difference: diff, signal: signal });\n});\n\ntrends.sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference));\nreturn trends.map(t => ({ json: t }));"
       },
       "name": "P6 - Trend & Drift Analysis",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1184,
-        -112
+        1488,
+        -160
       ],
       "id": "3fd29a63-edd2-40d0-ac76-5a56af77b94d"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P7 & P8: Observability and Report Compilation\n */\nconst runId = $('P2 - Redact PII').first().json.run_id;\nconst triageNode = $('P3 & P4 - Triage & Draft Reply');\nconst allTickets = triageNode.all().map(item => item.json);\n\nconst totalProcessed = allTickets.length;\nconst totalRouted = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').length;\nconst totalErrors = 0;\n\nconst catCounts = {};\nallTickets.forEach(t => { const cat = t.category || 'CAT_OTHER'; catCounts[cat] = (catCounts[cat] || 0) + 1; });\n\nconst pareto = $('P5 - Calculate Percentages').all().map(item => item.json);\nconst trends = $('P6 - Trend & Drift Analysis').all().map(item => item.json);\n\nreturn [{\n  json: {\n    run_id: runId,\n    timestamp: new Date().toISOString(),\n    summary_processed: totalProcessed,\n    summary_errors: totalErrors,\n    summary_routed: totalRouted,\n    category_counts: catCounts,\n    pareto_analysis: pareto,\n    trends: trends\n  }\n}];"
+        "jsCode": "/**\n * P7 & P8: Observability and Report Compilation\n */\nconst runId = $('P2 - Redact PII').first().json.run_id;\nconst triageNode = $('P3c - Unpack, Fallback & Route');\nconst allTickets = triageNode.all().map(item => item.json);\n\nconst totalProcessed = allTickets.length;\nconst totalRouted = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').length;\nconst totalErrors = 0;\nconst triageStats = {\n  llm: allTickets.filter(t => t.triage_source === 'llm').length,\n  keyword_fallback: allTickets.filter(t => t.triage_source === 'keyword_fallback').length,\n  error: allTickets.filter(t => t.triage_source === 'error').length\n};\n\nconst catCounts = {};\nallTickets.forEach(t => { const cat = t.category || 'CAT_OTHER'; catCounts[cat] = (catCounts[cat] || 0) + 1; });\n\nconst pareto = $('P5 - Calculate Percentages').all().map(item => item.json);\nconst trends = $('P6 - Trend & Drift Analysis').all().map(item => item.json);\n\nreturn [{\n  json: {\n    run_id: runId,\n    timestamp: new Date().toISOString(),\n    summary_processed: totalProcessed,\n    summary_errors: totalErrors,\n    summary_routed: totalRouted,\n    triage_stats: triageStats,\n    category_counts: catCounts,\n    pareto_analysis: pareto,\n    trends: trends\n  }\n}];"
       },
       "name": "P7 & P8 - Compile Observability Report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1376,
-        -112
+        1680,
+        -160
       ],
       "id": "d4abd740-32a0-41b3-b7fc-b680d68233b8"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P7 Routed Tickets List Compilation\n * S1: Data minimalization - FNV-1a hash (pure-JS, no require)\n */\nconst triageNode = $('P3 & P4 - Triage & Draft Reply');\nconst allTickets = triageNode.all().map(item => item.json);\n\nfunction fnvHash(str) {\n  let h = 14695981039346656037n;\n  for (let i = 0; i < str.length; i++) { h ^= BigInt(str.charCodeAt(i)); h *= 1099511628211n; }\n  return h.toString(16).padStart(16, '0').substring(0, 16);\n}\n\nconst routedTickets = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').map(t => ({\n  id: t.id, created_at: t.created_at, channel: t.channel, language: t.language,\n  requester_type: t.requester_type, subject: t.subject, category: t.category,\n  confidence: t.confidence, route_to: t.route_to, route_reason: t.route_reason,\n  draft_reply: t.draft_reply, body_fnva_hash: t.body ? fnvHash(t.body) : ''\n}));\n\nreturn routedTickets.map(t => ({ json: t }));"
+        "jsCode": "/**\n * P7 Routed Tickets List Compilation\n * S1: Data minimalization - FNV-1a hash (pure-JS, no require)\n */\nconst triageNode = $('P3c - Unpack, Fallback & Route');\nconst allTickets = triageNode.all().map(item => item.json);\n\nfunction fnvHash(str) {\n  let h = 14695981039346656037n;\n  for (let i = 0; i < str.length; i++) { h ^= BigInt(str.charCodeAt(i)); h *= 1099511628211n; }\n  return h.toString(16).padStart(16, '0').substring(0, 16);\n}\n\nconst routedTickets = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').map(t => ({\n  id: t.id, created_at: t.created_at, channel: t.channel, language: t.language,\n  requester_type: t.requester_type, subject: t.subject, category: t.category,\n  confidence: t.confidence, route_to: t.route_to, route_reason: t.route_reason,\n  triage_source: t.triage_source, draft_reply: t.draft_reply,\n  body_fnva_hash: t.body ? fnvHash(t.body) : ''\n}));\n\nreturn routedTickets.map(t => ({ json: t }));"
       },
       "name": "P7 - Compile Routed Tickets",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        560,
+        880,
         240
       ],
       "id": "d7793595-e188-43e8-8630-bb17d349e6c4"
-    },
-    {
-      "parameters": {
-        "mode": "chooseBranch",
-        "numberInputs": 3
-      },
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        64,
-        64
-      ],
-      "id": "76e448e3-d8df-4ad7-9ee3-88b6075e6bc1",
-      "name": "Merge"
     },
     {
       "parameters": {
@@ -244,8 +311,8 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        1552,
-        -112
+        1856,
+        -160
       ],
       "id": "5704bf47-eac7-422d-8d75-6b64fb4c14f4",
       "name": "Edit a file1",
@@ -282,7 +349,7 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        928,
+        1232,
         240
       ],
       "id": "6b091e58-502f-4688-a0f9-91d5c84fefee",
@@ -304,7 +371,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        752,
+        1056,
         240
       ],
       "id": "8af23cd1-57f6-4874-b235-079655055a47",
@@ -312,13 +379,13 @@
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P7: Format Markdown Report — human-readable report.md\n */\nconst latestNode = $('P7 & P8 - Compile Observability Report');\nconst reportJson = latestNode.first().json;\n\nconst runId = reportJson.run_id;\nconst ts = reportJson.timestamp;\nconst processed = reportJson.summary_processed;\nconst routed = reportJson.summary_routed;\nconst errors = reportJson.summary_errors;\nconst pareto = reportJson.pareto_analysis || [];\nconst trends = reportJson.trends || [];\nconst catCounts = reportJson.category_counts || {};\n\nconst catNames = {\n  'CAT_ACCESS_ACCOUNT': 'Access & Account',\n  'CAT_M365_COPILOT': 'M365 Copilot',\n  'CAT_GH_COPILOT': 'GitHub Copilot',\n  'CAT_SOFTWARE_INSTALL': 'Software Install',\n  'CAT_VPN_REMOTE': 'VPN & Remote',\n  'CAT_NETWORK_WIFI': 'Network & Wi-Fi',\n  'CAT_HARDWARE_DEVICE': 'Device & Hardware',\n  'CAT_PRINTER': 'Printer & Scanning',\n  'CAT_ONBOARDING_HR': 'Onboarding / HR',\n  'CAT_PROCUREMENT_BILLING': 'Procurement / Billing',\n  'CAT_OTHER': 'Overig / Onbekend'\n};\n\nconst cn = id => catNames[id] || id;\n\nlet md = `# Helpdesk Report — ${runId}\\n\\n`;\nmd += `**Report date:** ${ts}\\n`;\nmd += `**Tickets processed:** ${processed}  |  **Routed:** ${routed}  |  **Errors:** ${errors}\\n\\n`;\n\n// Pareto table\nmd += `## Pareto Analysis\\n\\n`;\nmd += `| # | Category | Count | % |\\n`;\nmd += `|---|----------|-------|---|\\n`;\npareto.forEach((p, i) => {\n  md += `| ${i+1} | ${cn(p.category)} | ${p.count_category} | ${p.percentage}% |\\n`;\n});\n\n// Trends table\nmd += `\\n## Trends\\n\\n`;\nmd += `| Category | Period 1 | Period 2 | Delta | Signal |\\n`;\nmd += `|----------|---------|---------|-------|--------|\\n`;\ntrends.forEach(t => {\n  const signal = t.signal === 'riser' ? 'Riser ⬆' : t.signal === 'faller' ? 'Faller ⬇' : 'Stable ➕';\n  md += `| ${cn(t.category)} | ${t.period1_count} | ${t.period2_count} | ${t.difference > 0 ? '+' : ''}${t.difference} | ${signal} |\\n`;\n});\n\n// Category counts\nmd += `\\n## Category Breakdown\\n\\n`;\nmd += `| Category | Count | % |\\n`;\nmd += `|----------|-------|---|\\n`;\nObject.entries(catCounts).sort((a,b) => b[1]-a[1]).forEach(([cat, count]) => {\n  const pct = processed > 0 ? Math.round(count / processed * 100) : 0;\n  md += `| ${cn(cat)} | ${count} | ${pct}% |\\n`;\n});\n\nmd += `\\n---\\n_Generated by n8n Helpdesk Casus — Route 1 (HTTP CSV)_\\n`;\n\nreturn [{ json: { content: md } }];"
+        "jsCode": "/**\n * P7: Format Markdown Report — human-readable report.md\n */\nconst latestNode = $('P7 & P8 - Compile Observability Report');\nconst reportJson = latestNode.first().json;\n\nconst runId = reportJson.run_id;\nconst ts = reportJson.timestamp;\nconst processed = reportJson.summary_processed;\nconst routed = reportJson.summary_routed;\nconst errors = reportJson.summary_errors;\nconst pareto = reportJson.pareto_analysis || [];\nconst trends = reportJson.trends || [];\nconst catCounts = reportJson.category_counts || {};\nconst triageStats = reportJson.triage_stats || {};\n\nconst catNames = {\n  'CAT_ACCESS_ACCOUNT': 'Access & Account',\n  'CAT_M365_COPILOT': 'M365 Copilot',\n  'CAT_GH_COPILOT': 'GitHub Copilot',\n  'CAT_SOFTWARE_INSTALL': 'Software Install',\n  'CAT_VPN_REMOTE': 'VPN & Remote',\n  'CAT_NETWORK_WIFI': 'Network & Wi-Fi',\n  'CAT_HARDWARE_DEVICE': 'Device & Hardware',\n  'CAT_PRINTER': 'Printer & Scanning',\n  'CAT_ONBOARDING_HR': 'Onboarding / HR',\n  'CAT_PROCUREMENT_BILLING': 'Procurement / Billing',\n  'CAT_OTHER': 'Overig / Onbekend'\n};\n\nconst cn = id => catNames[id] || id;\n\nlet md = '# Helpdesk Report — ' + runId + '\\n\\n';\nmd += '**Report date:** ' + ts + '\\n';\nmd += '**Tickets processed:** ' + processed + '  |  **Routed:** ' + routed + '  |  **Errors:** ' + errors + '\\n';\nif (triageStats.llm !== undefined) {\n  md += '**Triage source:** LLM: ' + (triageStats.llm || 0) + ' | Keyword fallback: ' + (triageStats.keyword_fallback || 0) + ' | Error: ' + (triageStats.error || 0) + '\\n';\n}\nmd += '\\n';\n\n// Pareto table\nmd += '## Pareto Analysis\\n\\n';\nmd += '| # | Category | Count | % |\\n';\nmd += '|---|----------|-------|---|\\n';\npareto.forEach((p, i) => {\n  md += '| ' + (i+1) + ' | ' + cn(p.category) + ' | ' + p.count_category + ' | ' + p.percentage + '% |\\n';\n});\n\n// Trends table\nmd += '\\n## Trends\\n\\n';\nmd += '| Category | Period 1 | Period 2 | Delta | Signal |\\n';\nmd += '|----------|---------|---------|-------|--------|\\n';\ntrends.forEach(t => {\n  var signal = t.signal === 'riser' ? 'Riser ⬆' : t.signal === 'faller' ? 'Faller ⬇' : 'Stable ➕';\n  md += '| ' + cn(t.category) + ' | ' + t.period1_count + ' | ' + t.period2_count + ' | ' + (t.difference > 0 ? '+' : '') + t.difference + ' | ' + signal + ' |\\n';\n});\n\n// Category counts\nmd += '\\n## Category Breakdown\\n\\n';\nmd += '| Category | Count | % |\\n';\nmd += '|----------|-------|---|\\n';\nObject.entries(catCounts).sort(function(a,b) { return b[1]-a[1]; }).forEach(function(entry) {\n  var cat = entry[0];\n  var count = entry[1];\n  var pct = processed > 0 ? Math.round(count / processed * 100) : 0;\n  md += '| ' + cn(cat) + ' | ' + count + ' | ' + pct + '% |\\n';\n});\n\nmd += '\\n---\\n_Generated by n8n Helpdesk Casus — Route 1 (HTTP CSV) [v2 LLM]_\\n';\n\nreturn [{ json: { content: md } }];"
       },
       "name": "P7 - Format Markdown Report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1552,
+        1856,
         80
       ],
       "id": "md-format-001"
@@ -348,7 +415,7 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        1728,
+        2032,
         80
       ],
       "id": "md-github-001",
@@ -379,6 +446,11 @@
           },
           {
             "node": "HTTP - Get queues.json",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP - Get llm_config.json",
             "type": "main",
             "index": 0
           }
@@ -418,6 +490,17 @@
         ]
       ]
     },
+    "HTTP - Get llm_config.json": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
     "Parse CSV": {
       "main": [
         [
@@ -440,7 +523,40 @@
         ]
       ]
     },
-    "P3 & P4 - Triage & Draft Reply": {
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "P3a - Prepare LLM Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P3a - Prepare LLM Batches": {
+      "main": [
+        [
+          {
+            "node": "P3b - LLM Triage HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P3b - LLM Triage HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "P3c - Unpack, Fallback & Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P3c - Unpack, Fallback & Route": {
       "main": [
         [
           {
@@ -500,17 +616,6 @@
         ]
       ]
     },
-    "Merge": {
-      "main": [
-        [
-          {
-            "node": "P3 & P4 - Triage & Draft Reply",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "P7 & P8 - Compile Observability Report": {
       "main": [
         [
@@ -538,11 +643,6 @@
         ]
       ]
     },
-    "Edit a file": {
-      "main": [
-        []
-      ]
-    },
     "Aggregate": {
       "main": [
         [
@@ -552,6 +652,11 @@
             "index": 0
           }
         ]
+      ]
+    },
+    "Edit a file": {
+      "main": [
+        []
       ]
     },
     "P7 - Format Markdown Report": {
