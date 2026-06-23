@@ -128,7 +128,7 @@
               <span class="label">${cn(p.category)}</span>
               <div class="bar" style="width:${Math.round((p.percentage||0)/maxPct*100)}%;background:${catColors[p.category]||'#999'}"></div>
               <span class="pct">${p.percentage}%</span>
-              <span style="font-size:12px;color:#999">(${p.count || p.count_category})</span>
+              <span style="font-size:12px;color:#999">(${p.count_category})</span>
             </div>
           `).join('') || '<div class="loading">Geen data</div>'}
         </div>
@@ -199,7 +199,10 @@
     `;
 
   } catch (err) {
-    app.innerHTML = `<div class="error">❌ Fout bij laden dashboard: ${err.message}</div>`;
+    app.innerHTML = `<div class="error">❌ Fout bij laden dashboard: ${err.message}</div>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="location.reload()" style="padding:8px 24px;background:#16213e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">🔄 Probeer opnieuw</button>
+      </div>`;
     console.error(err);
   }
 })();
