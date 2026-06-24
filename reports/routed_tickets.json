@@ -4,34 +4,16 @@
       "category": "CAT_ACCESS_ACCOUNT",
       "confidence": 0.95,
       "route_to": "Q_IDENTITY_ACCESS",
-      "route_reason": "The ticket explicitly mentions 'kan niet inloggen op laptop na wachtwoord reset' and 'MFA lijkt te hangen', which directly relates to account access and authentication issues.",
+      "route_reason": "The user cannot log in after a password reset and is experiencing MFA issues, which directly relates to account and access management.",
       "triage_source": "llm",
       "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Account & Access\" en doorgezet naar het specialistische team: Identity & Access. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
-      "body_fnva_hash": ""
-    },
-    {
-      "category": "CAT_VPN_REMOTE",
-      "confidence": 0.95,
-      "route_to": "Q_NETWORK",
-      "route_reason": "The ticket explicitly mentions 'VPN valt steeds weg' and 'AnyConnect verbreekt de tunnel', which directly relates to VPN connectivity issues.",
-      "triage_source": "llm",
-      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"VPN & Remote Access\" en doorgezet naar het specialistische team: Network Team. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
-      "body_fnva_hash": ""
-    },
-    {
-      "category": "CAT_M365_COPILOT",
-      "confidence": 0.95,
-      "route_to": "Q_M365",
-      "route_reason": "The user is asking about a missing Copilot button in Outlook and how to enable it, which directly relates to M365 Copilot functionality.",
-      "triage_source": "llm",
-      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"M365 Copilot\" en doorgezet naar het specialistische team: M365 / Collaboration. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
       "body_fnva_hash": ""
     },
     {
       "category": "CAT_GH_COPILOT",
       "confidence": 0.95,
       "route_to": "Q_DEVELOPER_EXPERIENCE",
-      "route_reason": "The ticket explicitly mentions 'GitHub Copilot' and 'Not authorized' in the VS Code extension, indicating an access issue related to GitHub Copilot seats.",
+      "route_reason": "User is experiencing an authorization issue with GitHub Copilot in VS Code, indicating a potential problem with seat assignment or access.",
       "triage_source": "llm",
       "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"GitHub Copilot\" en doorgezet naar het specialistische team: Developer Experience. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
       "body_fnva_hash": ""
@@ -40,9 +22,45 @@
       "category": "CAT_PRINTER",
       "confidence": 0.95,
       "route_to": "Q_WORKPLACE",
-      "route_reason": "The ticket explicitly mentions 'printer offline' and 'resetting the queue' for a specific printer, directly aligning with printer troubleshooting.",
+      "route_reason": "The ticket explicitly mentions a printer issue ('printer offline') and requests a queue reset, directly aligning with printer troubleshooting.",
       "triage_source": "llm",
       "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Printer & Scanning\" en doorgezet naar het specialistische team: Workplace / Devices. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_ACCESS_ACCOUNT",
+      "confidence": 0.95,
+      "route_to": "Q_IDENTITY_ACCESS",
+      "route_reason": "The ticket explicitly mentions 'Wachtwoord reset' and 'MFA app', which directly falls under account and access management.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Account & Access\" en doorgezet naar het specialistische team: Identity & Access. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_VPN_REMOTE",
+      "confidence": 0.95,
+      "route_to": "Q_NETWORK",
+      "route_reason": "The ticket explicitly mentions 'VPN' and 'certificate expired' when connecting, which directly relates to VPN and remote access issues.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"VPN & Remote Access\" en doorgezet naar het specialistische team: Network Team. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_SOFTWARE_INSTALL",
+      "confidence": 0.95,
+      "route_to": "Q_WORKPLACE",
+      "route_reason": "The user is asking to install Postman and mentions not having admin rights, which directly relates to software installation and permissions.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Software Install & Updates\" en doorgezet naar het specialistische team: Workplace / Devices. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_ACCESS_ACCOUNT",
+      "confidence": 0.95,
+      "route_to": "Q_IDENTITY_ACCESS",
+      "route_reason": "The user is reporting 'access denied' to a SharePoint site and requests rights to be added, which directly falls under access management.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Account & Access\" en doorgezet naar het specialistische team: Identity & Access. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
       "body_fnva_hash": ""
     }
   ]
