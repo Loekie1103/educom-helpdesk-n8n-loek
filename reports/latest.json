@@ -1,55 +1,86 @@
 {
   "run_id": "RUN-CBF2A275FB3846B4",
-  "timestamp": "2026-06-24T14:42:16.069Z",
+  "timestamp": "2026-06-24T14:44:11.352Z",
   "summary_processed": 20,
   "summary_errors": 0,
-  "summary_routed": 7,
+  "summary_routed": 20,
   "triage_stats": {
-    "llm": 7,
-    "keyword_fallback": 13,
+    "llm": 20,
+    "keyword_fallback": 0,
     "error": 0
   },
   "category_counts": {
     "CAT_ACCESS_ACCOUNT": 3,
-    "CAT_OTHER": 13,
-    "CAT_GH_COPILOT": 1,
-    "CAT_PRINTER": 1,
-    "CAT_VPN_REMOTE": 1,
-    "CAT_SOFTWARE_INSTALL": 1
+    "CAT_VPN_REMOTE": 2,
+    "CAT_M365_COPILOT": 3,
+    "CAT_GH_COPILOT": 2,
+    "CAT_PRINTER": 2,
+    "CAT_NETWORK_WIFI": 2,
+    "CAT_ONBOARDING_HR": 2,
+    "CAT_PROCUREMENT_BILLING": 1,
+    "CAT_HARDWARE_DEVICE": 1,
+    "CAT_SOFTWARE_INSTALL": 2
   },
   "pareto_analysis": [
-    {
-      "category": "CAT_OTHER",
-      "count_category": 13,
-      "percentage": 65
-    },
     {
       "category": "CAT_ACCESS_ACCOUNT",
       "count_category": 3,
       "percentage": 15
     },
     {
-      "category": "CAT_GH_COPILOT",
-      "count_category": 1,
-      "percentage": 5
-    },
-    {
-      "category": "CAT_PRINTER",
-      "count_category": 1,
-      "percentage": 5
+      "category": "CAT_M365_COPILOT",
+      "count_category": 3,
+      "percentage": 15
     },
     {
       "category": "CAT_VPN_REMOTE",
+      "count_category": 2,
+      "percentage": 10
+    },
+    {
+      "category": "CAT_GH_COPILOT",
+      "count_category": 2,
+      "percentage": 10
+    },
+    {
+      "category": "CAT_PRINTER",
+      "count_category": 2,
+      "percentage": 10
+    },
+    {
+      "category": "CAT_NETWORK_WIFI",
+      "count_category": 2,
+      "percentage": 10
+    },
+    {
+      "category": "CAT_ONBOARDING_HR",
+      "count_category": 2,
+      "percentage": 10
+    },
+    {
+      "category": "CAT_SOFTWARE_INSTALL",
+      "count_category": 2,
+      "percentage": 10
+    },
+    {
+      "category": "CAT_PROCUREMENT_BILLING",
       "count_category": 1,
       "percentage": 5
     },
     {
-      "category": "CAT_SOFTWARE_INSTALL",
+      "category": "CAT_HARDWARE_DEVICE",
       "count_category": 1,
       "percentage": 5
     }
   ],
   "trends": [
+    {
+      "category": "CAT_SOFTWARE_INSTALL",
+      "period1_count": 0,
+      "period2_count": 2,
+      "difference": 2,
+      "signal": "riser"
+    },
     {
       "category": "CAT_ACCESS_ACCOUNT",
       "period1_count": 1,
@@ -58,21 +89,21 @@
       "signal": "stable"
     },
     {
-      "category": "CAT_OTHER",
-      "period1_count": 7,
-      "period2_count": 6,
+      "category": "CAT_M365_COPILOT",
+      "period1_count": 2,
+      "period2_count": 1,
       "difference": -1,
       "signal": "stable"
     },
     {
-      "category": "CAT_GH_COPILOT",
+      "category": "CAT_PROCUREMENT_BILLING",
       "period1_count": 1,
       "period2_count": 0,
       "difference": -1,
       "signal": "stable"
     },
     {
-      "category": "CAT_PRINTER",
+      "category": "CAT_HARDWARE_DEVICE",
       "period1_count": 1,
       "period2_count": 0,
       "difference": -1,
@@ -80,16 +111,37 @@
     },
     {
       "category": "CAT_VPN_REMOTE",
-      "period1_count": 0,
+      "period1_count": 1,
       "period2_count": 1,
-      "difference": 1,
+      "difference": 0,
       "signal": "stable"
     },
     {
-      "category": "CAT_SOFTWARE_INSTALL",
-      "period1_count": 0,
+      "category": "CAT_GH_COPILOT",
+      "period1_count": 1,
       "period2_count": 1,
-      "difference": 1,
+      "difference": 0,
+      "signal": "stable"
+    },
+    {
+      "category": "CAT_PRINTER",
+      "period1_count": 1,
+      "period2_count": 1,
+      "difference": 0,
+      "signal": "stable"
+    },
+    {
+      "category": "CAT_NETWORK_WIFI",
+      "period1_count": 1,
+      "period2_count": 1,
+      "difference": 0,
+      "signal": "stable"
+    },
+    {
+      "category": "CAT_ONBOARDING_HR",
+      "period1_count": 1,
+      "period2_count": 1,
+      "difference": 0,
       "signal": "stable"
     }
   ]
