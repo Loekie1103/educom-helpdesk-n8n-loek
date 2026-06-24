@@ -1,79 +1,92 @@
 {
   "run_id": "RUN-CBF2A275FB3846B4",
-  "timestamp": "2026-06-24T14:33:58.063Z",
-  "summary_processed": 5,
+  "timestamp": "2026-06-24T14:42:16.069Z",
+  "summary_processed": 20,
   "summary_errors": 0,
-  "summary_routed": 5,
+  "summary_routed": 7,
   "triage_stats": {
-    "llm": 5,
-    "keyword_fallback": 0,
+    "llm": 7,
+    "keyword_fallback": 13,
     "error": 0
   },
   "category_counts": {
-    "CAT_ACCESS_ACCOUNT": 1,
-    "CAT_VPN_REMOTE": 1,
-    "CAT_M365_COPILOT": 1,
+    "CAT_ACCESS_ACCOUNT": 3,
+    "CAT_OTHER": 13,
     "CAT_GH_COPILOT": 1,
-    "CAT_PRINTER": 1
+    "CAT_PRINTER": 1,
+    "CAT_VPN_REMOTE": 1,
+    "CAT_SOFTWARE_INSTALL": 1
   },
   "pareto_analysis": [
     {
+      "category": "CAT_OTHER",
+      "count_category": 13,
+      "percentage": 65
+    },
+    {
       "category": "CAT_ACCESS_ACCOUNT",
-      "count_category": 1,
-      "percentage": 20
-    },
-    {
-      "category": "CAT_VPN_REMOTE",
-      "count_category": 1,
-      "percentage": 20
-    },
-    {
-      "category": "CAT_M365_COPILOT",
-      "count_category": 1,
-      "percentage": 20
+      "count_category": 3,
+      "percentage": 15
     },
     {
       "category": "CAT_GH_COPILOT",
       "count_category": 1,
-      "percentage": 20
+      "percentage": 5
     },
     {
       "category": "CAT_PRINTER",
       "count_category": 1,
-      "percentage": 20
+      "percentage": 5
+    },
+    {
+      "category": "CAT_VPN_REMOTE",
+      "count_category": 1,
+      "percentage": 5
+    },
+    {
+      "category": "CAT_SOFTWARE_INSTALL",
+      "count_category": 1,
+      "percentage": 5
     }
   ],
   "trends": [
     {
       "category": "CAT_ACCESS_ACCOUNT",
       "period1_count": 1,
-      "period2_count": 0,
+      "period2_count": 2,
+      "difference": 1,
+      "signal": "stable"
+    },
+    {
+      "category": "CAT_OTHER",
+      "period1_count": 7,
+      "period2_count": 6,
       "difference": -1,
       "signal": "stable"
     },
     {
-      "category": "CAT_VPN_REMOTE",
+      "category": "CAT_GH_COPILOT",
       "period1_count": 1,
       "period2_count": 0,
       "difference": -1,
       "signal": "stable"
     },
     {
-      "category": "CAT_M365_COPILOT",
-      "period1_count": 0,
-      "period2_count": 1,
-      "difference": 1,
-      "signal": "stable"
-    },
-    {
-      "category": "CAT_GH_COPILOT",
-      "period1_count": 0,
-      "period2_count": 1,
-      "difference": 1,
-      "signal": "stable"
-    },
-    {
       "category": "CAT_PRINTER",
+      "period1_count": 1,
+      "period2_count": 0,
+      "difference": -1,
+      "signal": "stable"
+    },
+    {
+      "category": "CAT_VPN_REMOTE",
+      "period1_count": 0,
+      "period2_count": 1,
+      "difference": 1,
+      "signal": "stable"
+    },
+    {
+      "category": "CAT_SOFTWARE_INSTALL",
       "period1_count": 0,
       "period2_count": 1,
       "difference": 1,
