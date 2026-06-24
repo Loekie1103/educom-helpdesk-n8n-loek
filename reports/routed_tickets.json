@@ -4,16 +4,34 @@
       "category": "CAT_ACCESS_ACCOUNT",
       "confidence": 0.95,
       "route_to": "Q_IDENTITY_ACCESS",
-      "route_reason": "The user cannot log in after a password reset and is experiencing MFA issues, which directly relates to account and access management.",
+      "route_reason": "The ticket explicitly mentions 'kan niet inloggen op laptop na wachtwoord reset' and 'MFA lijkt te hangen', which directly relates to account access and authentication issues.",
       "triage_source": "llm",
       "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Account & Access\" en doorgezet naar het specialistische team: Identity & Access. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_VPN_REMOTE",
+      "confidence": 0.95,
+      "route_to": "Q_NETWORK",
+      "route_reason": "The user is experiencing frequent disconnections from AnyConnect VPN while working from home and suspects an issue with their account or certificate, which directly relates to VPN and remote access.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"VPN & Remote Access\" en doorgezet naar het specialistische team: Network Team. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_M365_COPILOT",
+      "confidence": 0.95,
+      "route_to": "Q_M365",
+      "route_reason": "The ticket explicitly mentions 'Outlook Copilot' and asks about enabling it, directly relating to M365 Copilot functionality.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"M365 Copilot\" en doorgezet naar het specialistische team: M365 / Collaboration. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
       "body_fnva_hash": ""
     },
     {
       "category": "CAT_GH_COPILOT",
       "confidence": 0.95,
       "route_to": "Q_DEVELOPER_EXPERIENCE",
-      "route_reason": "User is experiencing an authorization issue with GitHub Copilot in VS Code, indicating a potential problem with seat assignment or access.",
+      "route_reason": "The ticket explicitly mentions 'GitHub Copilot' and 'Not authorized' in the VS Code extension, indicating an access issue related to GitHub Copilot seats.",
       "triage_source": "llm",
       "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"GitHub Copilot\" en doorgezet naar het specialistische team: Developer Experience. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
       "body_fnva_hash": ""
@@ -22,9 +40,54 @@
       "category": "CAT_PRINTER",
       "confidence": 0.95,
       "route_to": "Q_WORKPLACE",
-      "route_reason": "The ticket explicitly mentions a printer issue ('printer offline') and requests a queue reset, directly aligning with printer troubleshooting.",
+      "route_reason": "The ticket explicitly mentions a printer issue ('printer offline') and requests a queue reset for a specific printer.",
       "triage_source": "llm",
       "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Printer & Scanning\" en doorgezet naar het specialistische team: Workplace / Devices. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_NETWORK_WIFI",
+      "confidence": 0.95,
+      "route_to": "Q_NETWORK",
+      "route_reason": "The subject and body clearly indicate an issue with connecting to the 'CorpNet' Wi-Fi, with the laptop repeatedly asking for a password, which is a common network connectivity problem.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Network & Wi‑Fi\" en doorgezet naar het specialistische team: Network Team. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_ONBOARDING_HR",
+      "confidence": 0.95,
+      "route_to": "Q_HR",
+      "route_reason": "The ticket explicitly mentions 'Nieuwe medewerker' and 'HR portal' and 'Teams account' which are common onboarding tasks.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Onboarding / HR loket\" en doorgezet naar het specialistische team: HR Loket. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_PROCUREMENT_BILLING",
+      "confidence": 0.95,
+      "route_to": "Q_FINANCE_PROCUREMENT",
+      "route_reason": "The ticket explicitly mentions 'factuur' (invoice) and 'kostenplaats' (cost center), which directly relates to procurement and billing.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Inkoop / Billing loket\" en doorgezet naar het specialistische team: Finance / Inkoop. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_HARDWARE_DEVICE",
+      "confidence": 0.95,
+      "route_to": "Q_WORKPLACE",
+      "route_reason": "The ticket describes a laptop being very slow and fans being loud after a Windows update, indicating a performance issue likely related to hardware or system resources.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Device & Hardware\" en doorgezet naar het specialistische team: Workplace / Devices. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_M365_COPILOT",
+      "confidence": 0.95,
+      "route_to": "Q_M365",
+      "route_reason": "The ticket explicitly mentions 'Copilot in Teams' and 'policy blocked' when trying to summarize a meeting, which directly relates to M365 Copilot functionality and its policies.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"M365 Copilot\" en doorgezet naar het specialistische team: M365 / Collaboration. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
       "body_fnva_hash": ""
     },
     {
@@ -46,21 +109,75 @@
       "body_fnva_hash": ""
     },
     {
+      "category": "CAT_GH_COPILOT",
+      "confidence": 0.95,
+      "route_to": "Q_DEVELOPER_EXPERIENCE",
+      "route_reason": "The ticket explicitly mentions 'Copilot for GitHub' and 'seat aanvragen', directly aligning with the GitHub Copilot category.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"GitHub Copilot\" en doorgezet naar het specialistische team: Developer Experience. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
       "category": "CAT_SOFTWARE_INSTALL",
       "confidence": 0.95,
       "route_to": "Q_WORKPLACE",
-      "route_reason": "The user is asking to install Postman and mentions not having admin rights, which directly relates to software installation and permissions.",
+      "route_reason": "The user is asking about installing Postman via Company Portal and mentions lacking admin rights, which directly relates to software installation and permissions.",
       "triage_source": "llm",
       "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Software Install & Updates\" en doorgezet naar het specialistische team: Workplace / Devices. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_M365_COPILOT",
+      "confidence": 0.95,
+      "route_to": "Q_M365",
+      "route_reason": "The ticket explicitly mentions 'M365 Copilot' and asks about its usage with sensitive documents and related policies, which directly falls under the M365 Copilot category.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"M365 Copilot\" en doorgezet naar het specialistische team: M365 / Collaboration. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_PRINTER",
+      "confidence": 0.95,
+      "route_to": "Q_WORKPLACE",
+      "route_reason": "The ticket explicitly mentions 'Printer scant niet naar mail' and 'Scan-to-email faalt met SMTP error', directly indicating a printer and scanning issue.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Printer & Scanning\" en doorgezet naar het specialistische team: Workplace / Devices. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
       "body_fnva_hash": ""
     },
     {
       "category": "CAT_ACCESS_ACCOUNT",
       "confidence": 0.95,
       "route_to": "Q_IDENTITY_ACCESS",
-      "route_reason": "The user is reporting 'access denied' to a SharePoint site and requests rights to be added, which directly falls under access management.",
+      "route_reason": "The user is reporting 'access denied' to a SharePoint site and requests rights to be added, which directly relates to account and access management.",
       "triage_source": "llm",
       "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Account & Access\" en doorgezet naar het specialistische team: Identity & Access. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_SOFTWARE_INSTALL",
+      "confidence": 0.9,
+      "route_to": "Q_WORKPLACE",
+      "route_reason": "The user is experiencing an issue with Microsoft Teams not loading, which is a common software-related problem. Clearing the cache is a typical troubleshooting step for software issues.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Software Install & Updates\" en doorgezet naar het specialistische team: Workplace / Devices. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_ONBOARDING_HR",
+      "confidence": 0.95,
+      "route_to": "Q_HR",
+      "route_reason": "The ticket explicitly mentions 'HR vraag' and 'verlof saldo', which directly relates to HR-related inquiries and employee benefits.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Onboarding / HR loket\" en doorgezet naar het specialistische team: HR Loket. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
+      "body_fnva_hash": ""
+    },
+    {
+      "category": "CAT_NETWORK_WIFI",
+      "confidence": 0.95,
+      "route_to": "Q_NETWORK",
+      "route_reason": "The ticket explicitly mentions 'Wi-Fi' and 'DNS issues' and 'nslookup fails', which directly points to network connectivity problems.",
+      "triage_source": "llm",
+      "draft_reply": "Beste medewerker,\n\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"Network & Wi‑Fi\" en doorgezet naar het specialistische team: Network Team. Zij nemen dit zo snel mogelijk in behandeling.\n\nMet vriendelijke groet,\nIT Service Desk Support",
       "body_fnva_hash": ""
     }
   ]
