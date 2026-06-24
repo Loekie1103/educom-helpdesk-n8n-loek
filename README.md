@@ -2,7 +2,7 @@
 
 A fully automated n8n workflow for helpdesk ticket triage, PII redaction, Pareto reporting, and trend analysis — running in shadow mode on demo data.
 
-**Current version:** v1.1 — 19 nodes, 150 demo tickets, Markdown reports + interactive dashboard
+**Current version:** v1.1 — 19 nodes (keyword-based) | **v2 LLM prototype** — 20 nodes (LangChain + Gemini 2.5 Flash, LLM triage with keyword fallback)
 
 ## Quick Start
 
@@ -39,7 +39,7 @@ The dashboard fetches data directly from the JSON reports on GitHub — no serve
 
 ---
 
-## Architecture (19 nodes)
+## Architecture — v1.1 (19 nodes, keyword-based)
 
 ```
 Start
@@ -64,6 +64,49 @@ Start
                                  Edit a file   (reports/   (reports/
                                  (report.md)    report.md)  routed_tickets.json)
 ```
+
+## Architecture — v2 LLM (20 nodes, LLM triage with keyword fallback)
+
+```
+Start
+ ↓
+HTTP - categories.json → HTTP - queues.json → HTTP - tickets.csv
+                                                     ↓
+                                                Parse CSV
+                                                     ↓
+                                               P2 Redact PII
+                                                     ↓
+                                          P3a Prepare LLM Messages
+                                                     ↓
+                OpenAI Chat Model ──→ Basic LLM Chain
+               (Gemini 2.5 Flash)         ↓
+                                    P3c Parse Response & Route
+                                  ┌──────┼───────┐
+                                  │      │       │
+                   P5 Group → Sort → Pct        │
+                     ↓                         │
+                   P6 Trends                   │
+                     ↓                         │
+              P7 & P8 Report ──────┬───────┐  │ P7 Routed Tickets
+                     ↓             │       │  ↓      ↓
+               Edit a file1   Format    Edit    Aggregate
+            (reports/latest.json) Markdown report.md    ↓
+                     ↓             ↓              Edit a file
+               Edit a file   (reports/      (reports/
+               (report.md)    report.md)     routed_tickets.json)
+```
+
+### Key differences in v2 LLM
+
+| Node | v1.1 (keyword) | v2 LLM |
+|------|---------------|--------|
+| **P3 Triage** | Keyword matching in Code node | LangChain LLM Chain + OpenAI Chat Model (Gemini 2.5 Flash via OpenRouter) |
+| **P3a Prepare** | N/A (single triage node) | Builds system prompt from `categories.json`, sends user prompt per ticket |
+| **P3c Parse** | Output from same node | Extracts JSON from LLM response; falls back to keyword matching on failure |
+| **Confidence** | low/med/high (keyword count) | 0.0–1.0 (LLM-provided or fallback score) |
+| **P4 Draft reply** | Generated in P3 node | Generated in P3c only for tickets routed ≠ `Q_IT_SERVICE_DESK` |
+| **triage_source** | Not tracked | `llm` / `keyword_fallback` / `error` per ticket |
+| **Flow order** | Parallel config + tickets → Merge | Sequential: categories → queues → tickets (no Merge) |
 
 ### Functional Coverage
 
@@ -114,7 +157,8 @@ Start
 
 | File | Purpose |
 |------|---------|
-| `n8n/workflow-export.json` | Exported n8n workflow (import ready, 19 nodes) |
+| `n8n/workflow-export.json` | Exported n8n workflow (import ready, v1.1 keyword-based, 19 nodes) |
+| `n8n/backup/Helpdesk Casus – Route 1 (HTTP CSV) [v2 LLM] (1).json` | v2 LLM prototype workflow (20 nodes, LangChain + Gemini 2.5 Flash) |
 | `docs/requirements.md` | Requirements document (FR/NFR/open questions/metrics) |
 | `docs/roadmap.md` | Implementation roadmap with task tracking |
 | `docs/demo_scenario.md` | Live demo walkthrough with 3 showcase tickets |
@@ -145,3 +189,4 @@ Start
 |---------|------|---------|
 | v1.0 | 2026-06-18 | Initial workflow (16 nodes, 120 tickets, JSON reports) |
 | v1.1 | 2026-06-22 | Added 30 tickets (150 total), Markdown report, interactive dashboard |
+| v2 LLM | 2026-06-24 | LLM prototype: LangChain Basic LLM Chain + OpenAI Chat Model (Gemini 2.5 Flash via OpenRouter), keyword fallback, triage_source attribution, P4 draft reply generation, P7/P8 error counting fix |

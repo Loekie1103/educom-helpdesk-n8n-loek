@@ -93,6 +93,31 @@ Create an n8n workflow in shadow mode for helpdesk ticket triage and Pareto anal
 - [x] Workflow expanded to 19 nodes (added Format Markdown + Edit a file (report.md))
 - [x] Feature branch merged to main as v1.1
 
+## v2 LLM Prototype (2026-06-24) — LLM-Based Triage
+- [x] Created `n8n/backup/Helpdesk Casus – Route 1 (HTTP CSV) [v2 LLM] (1).json` — 20-node LLM workflow
+- [x] **OpenAI Chat Model** node (`@n8n/n8n-nodes-langchain.lmChatOpenAi`) — Gemini 2.5 Flash via OpenRouter, maxTokens 100, temperature 0.1
+- [x] **Basic LLM Chain** node (`@n8n/n8n-nodes-langchain.chainLlm`) — batching per ticket (batchSize 1), prompt from P3a
+- [x] **P3a - Prepare LLM Messages** — builds system prompt from `categories.json` with category names/descriptions, sends `Subject:` + `Body:` per ticket
+- [x] **P3c - Parse OpenAI Response & Route** — full rewrite of truncated jsCode:
+  - Robust JSON extraction (strips markdown code blocks, regex fallback for `{"category":...}`)
+  - Maps LLM `category` → `route_to` queue via `routingMap`, validated against `queues.json`
+  - Keyword-based fallback triage when LLM returns invalid/unparseable output
+  - `triage_source` per ticket: `"llm"`, `"keyword_fallback"`, or `"error"`
+  - **P4 draft reply** generation for tickets routed ≠ `Q_IT_SERVICE_DESK` (Dutch, references queue + category names from configs)
+- [x] **P7 & P8 - Compile Observability Report** — `totalErrors` now counts tickets with `triage_source === 'error'` instead of hardcoded 0
+- [x] **All downstream nodes** (P5 Pareto, P6 Trends, P7 Routed Tickets, P7 Format Markdown) verified to reference `$('P3c - Parse OpenAI Response & Route')` consistently
+- [x] Tested and working on VPS
+
+### What changed from v1.1
+| Aspect | v1.1 | v2 LLM |
+|--------|------|--------|
+| Triage engine | Keyword matching (Code node) | LLM semantic classification + keyword fallback |
+| Flow order | Parallel config + tickets → Merge | Sequential: categories → queues → tickets |
+| Confidence | low/med/high (string) | 0.0–1.0 (number) |
+| triage_source | Not tracked | `llm` / `keyword_fallback` / `error` |
+| Error counting | `totalErrors: 0` (hardcoded) | Counts actual triage_source errors |
+| Node count | 19 | 20 |
+
 ## Success Criteria
 - Workflow runs successfully in n8n editor
 - All functional requirements (P1-P8) implemented

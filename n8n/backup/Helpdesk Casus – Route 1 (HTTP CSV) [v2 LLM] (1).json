@@ -1,0 +1,638 @@
+{
+  "name": "Helpdesk Casus – Route 1 (HTTP CSV) [v2 LLM]",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -4032,
+        576
+      ],
+      "id": "794f2661-7d1d-4ff5-9d48-7603520cc46d"
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/Loekie1103/educom-helpdesk-n8n-loek/main/casus_data/demo-data/tickets.csv",
+        "responseFormat": "file",
+        "options": {}
+      },
+      "name": "HTTP Request - Get tickets.csv",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -3360,
+        576
+      ],
+      "id": "f48e0ef9-ee5a-40a2-86b0-8b0988bd7993"
+    },
+    {
+      "parameters": {
+        "options": {
+          "headerRow": true
+        }
+      },
+      "name": "Parse CSV",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 1,
+      "position": [
+        -3136,
+        576
+      ],
+      "id": "4b011f1b-e2fc-4cf5-96de-a541e6577856"
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/Loekie1103/educom-helpdesk-n8n-loek/main/casus_data/config/categories.json",
+        "options": {}
+      },
+      "name": "HTTP - Get categories.json",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -3808,
+        576
+      ],
+      "id": "edf4a2f8-76f6-42e7-a5c0-760438b876ca"
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/Loekie1103/educom-helpdesk-n8n-loek/main/casus_data/config/queues.json",
+        "options": {}
+      },
+      "name": "HTTP - Get queues.json",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -3584,
+        576
+      ],
+      "id": "7ca952f8-d537-4015-b179-ddf309d77271"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P2: PII Redaction & Date Formatting\n */\nfunction excelDateToISO(serial) {\n  const num = parseFloat(serial);\n  if (isNaN(num)) return serial;\n  const excelEpoch = new Date(1899, 11, 30);\n  const days = Math.floor(num);\n  const ms = Math.round((num - days) * 24 * 60 * 60 * 1000);\n  const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000 + ms);\n  return date.toISOString().replace('T', ' ').substring(0, 19);\n}\nfunction fnvHash(str) {\n  let h = 14695981039346656037n;\n  for (let i = 0; i < str.length; i++) { h ^= BigInt(str.charCodeAt(i)); h *= 1099511628211n; }\n  return h.toString(16).padStart(16, '0').substring(0, 16);\n}\nconst allIds = items.map(item => item.json.id || '').sort().join('|');\nconst runId = 'RUN-' + fnvHash(allIds + '|' + items.length).toUpperCase();\nreturn items.map(item => {\n  let body = item.json.body || '';\n  let subject = item.json.subject || '';\n  let created_at = item.json.created_at || '';\n  if (created_at && !isNaN(parseFloat(created_at))) { created_at = excelDateToISO(created_at); }\n  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n  const phoneRegex = /(?:\\+31|0)(?:\\s?\\d){9}/g;\n  const bsnRegex = /\\b\\d{9}\\b/g;\n  body = body.replace(emailRegex, '[EMAIL_REDACTED]');\n  body = body.replace(phoneRegex, '[PHONE_REDACTED]');\n  body = body.replace(bsnRegex, '[BSN_REDACTED]');\n  subject = subject.replace(emailRegex, '[EMAIL_REDACTED]');\n  subject = subject.replace(phoneRegex, '[PHONE_REDACTED]');\n  subject = subject.replace(bsnRegex, '[BSN_REDACTED]');\n  return { json: { ...item.json, run_id: runId, created_at, body, subject } };\n});"
+      },
+      "name": "P2 - Redact PII",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -2912,
+        576
+      ],
+      "id": "6eef7af4-8dd6-42f7-be0f-1eb2b54f8efd"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Fetch categories\nconst categoriesConfig = $('HTTP - Get categories.json').first().json;\nif (!categoriesConfig || !categoriesConfig.categories) {\n  throw new Error('Failed to load categories.json');\n}\n\n// 2. Build the category list for the LLM\nconst catList = categoriesConfig.categories\n  .map(c => `${c.id}: ${c.name} - ${c.description}`)\n  .join('\\n');\n\n// 3. Define a strict System Prompt\nconst systemPrompt = `You are an IT Helpdesk triage assistant. Categorize the following ticket into exactly ONE of these categories:\\n${catList}\\n\\nYou must respond ONLY with a valid, raw JSON object using this exact schema. Do not add markdown formatting:\\n{\"category\": \"CAT_ID_HERE\", \"confidence\": 0.95, \"reason\": \"Short reason here\"}`;\n\n// 4. Filter only ticket items (ignore the config inputs)\nconst ticketItems = items.filter(item => item.json && item.json.id);\n\n// LIMIT FOR TESTING: Only take the first 5 tickets\nconst testTickets = ticketItems.slice(0, 5);\n\n// 5. Output the ticket data and the final prompt\nreturn testTickets.map(item => {\n  const t = item.json;\n  const userPrompt = `Subject: ${t.subject || 'N/A'}\\nBody: ${t.body || 'N/A'}`;\n  const fullPrompt = `${systemPrompt}\\n\\nTicket Details:\\n${userPrompt}`;\n\n  return {\n    json: {\n      _ticket: t,\n      prompt: fullPrompt,\n      }\n    }\n  });"
+      },
+      "name": "P3a - Prepare LLM Messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -2688,
+        576
+      ],
+      "id": "9c983242-da74-429f-ba82-5a03e379ed10"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P3c: Parse OpenAI Response & Route\n * P4: Generate draft reply for misrouted tickets\n */\nconst categoriesConfig = $('HTTP - Get categories.json').first().json;\nconst queuesConfig = $('HTTP - Get queues.json').first().json;\n\nif (!categoriesConfig || !categoriesConfig.categories) throw new Error('Failed to load categories.json');\nif (!queuesConfig || !queuesConfig.queues) throw new Error('Failed to load queues.json');\n\nconst validQueues = new Set(queuesConfig.queues.map(q => q.id));\nconst validCategories = new Set(categoriesConfig.categories.map(c => c.id));\n\nconst routingMap = {\n  'CAT_ACCESS_ACCOUNT':'Q_IDENTITY_ACCESS','CAT_M365_COPILOT':'Q_M365',\n  'CAT_GH_COPILOT':'Q_DEVELOPER_EXPERIENCE','CAT_SOFTWARE_INSTALL':'Q_WORKPLACE',\n  'CAT_VPN_REMOTE':'Q_NETWORK','CAT_NETWORK_WIFI':'Q_NETWORK',\n  'CAT_HARDWARE_DEVICE':'Q_WORKPLACE','CAT_PRINTER':'Q_WORKPLACE',\n  'CAT_ONBOARDING_HR':'Q_HR','CAT_PROCUREMENT_BILLING':'Q_FINANCE_PROCUREMENT',\n  'CAT_OTHER':'Q_IT_SERVICE_DESK'\n};\n\n// Keyword-based fallback triage\nfunction keywordTriage(subject, body) {\n  const content = ((subject || '') + ' ' + (body || '')).toLowerCase();\n  let bestCat = null;\n  let maxMatches = 0;\n  categoriesConfig.categories.forEach(cat => {\n    let matches = 0;\n    (cat.keywords || []).forEach(kw => {\n      if (content.includes(kw.toLowerCase())) matches++;\n    });\n    if (matches > maxMatches) { maxMatches = matches; bestCat = cat; }\n  });\n  if (bestCat && maxMatches > 0) {\n    const confidence = maxMatches >= 3 ? 0.85 : maxMatches >= 2 ? 0.65 : 0.50;\n    const routeTo = routingMap[bestCat.id] || 'Q_IT_SERVICE_DESK';\n    return { category: bestCat.id, confidence, reason: 'Keyword fallback: matched ' + maxMatches + ' keyword(s) for ' + bestCat.id + '.', route_to: routeTo, triage_source: 'keyword_fallback' };\n  }\n  return { category: 'CAT_OTHER', confidence: 0.40, reason: 'No keywords matched, defaulting to CAT_OTHER.', route_to: 'Q_IT_SERVICE_DESK', triage_source: 'keyword_fallback' };\n}\n\n// Robust JSON extractor from LLM text output\nfunction extractJSON(text) {\n  if (!text) return null;\n  try {\n    // Strip markdown code blocks if the LLM adds them\n    let cleanText = text.replace(/```json\\s*/gi, '').replace(/```\\s*/gi, '').trim();\n    // Try direct parse first\n    try { return JSON.parse(cleanText); } catch(e) {}\n    // Try to find JSON object with regex\n    const match = cleanText.match(/\\{[^{}]*\"category\"[^{}]*\\}/);\n    if (match) {\n      try { return JSON.parse(match[0]); } catch(e) {}\n    }\n    return null;\n  } catch(e) {\n    return null;\n  }\n}\n\n// Generate draft reply for misrouted tickets (P4)\nfunction generateDraftReply(category, routeTo) {\n  const queueName = queuesConfig.queues.find(q => q.id === routeTo);\n  const target = queueName ? queueName.name : routeTo;\n  const catName = categoriesConfig.categories.find(c => c.id === category);\n  const catLabel = catName ? catName.name : category;\n  return 'Beste medewerker,\\n\\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"' + catLabel + '\" en doorgezet naar het specialistische team: ' + target + '. Zij nemen dit zo snel mogelijk in behandeling.\\n\\nMet vriendelijke groet,\\nIT Service Desk Support';\n}\n\n// Process each ticket that came through the LLM chain\nreturn items.map(item => {\n  const ticket = item.json._ticket || {};\n  const llmText = item.json.text || item.json.response || '';\n  let result;\n\n  try {\n    const parsed = extractJSON(llmText);\n    if (parsed && parsed.category && validCategories.has(parsed.category)) {\n      const routeTo = routingMap[parsed.category] || 'Q_IT_SERVICE_DESK';\n      if (!validQueues.has(routeTo)) throw new Error('Invalid queue: ' + routeTo);\n      result = {\n        category: parsed.category,\n        confidence: typeof parsed.confidence === 'number' ? parsed.confidence : parseFloat(parsed.confidence) || 0.80,\n        route_to: routeTo,\n        route_reason: parsed.reason || 'LLM classified as ' + parsed.category + '.',\n        triage_source: 'llm'\n      };\n    } else {\n      // LLM returned invalid/missing category — fall back to keyword triage\n      result = keywordTriage(ticket.subject, ticket.body);\n    }\n  } catch(e) {\n    // Exception during parsing — fall back to keyword triage\n    result = keywordTriage(ticket.subject, ticket.body);\n    result.triage_source = 'error';\n  }\n\n  // Generate draft reply for tickets routed away from main desk (P4)\n  let draft_reply = '';\n  if (result.route_to !== 'Q_IT_SERVICE_DESK') {\n    draft_reply = generateDraftReply(result.category, result.route_to);\n  }\n\n  return {\n    json: {\n      ...ticket,\n      category: result.category,\n      confidence: result.confidence,\n      route_to: result.route_to,\n      route_reason: result.route_reason,\n      draft_reply: draft_reply,\n      triage_source: result.triage_source\n    }\n  };\n});"
+      },
+      "name": "P3c - Parse OpenAI Response & Route",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -2112,
+        576
+      ],
+      "id": "8394c4cf-2e96-4944-8f02-89e286e66f31"
+    },
+    {
+      "parameters": {
+        "operation": "summarize",
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "field": "category"
+            }
+          ]
+        },
+        "fieldsToSplitBy": "category",
+        "options": {}
+      },
+      "name": "P5 - Group Categories (Pareto Count)",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 2.1,
+      "position": [
+        -1888,
+        480
+      ],
+      "id": "e59b7524-5989-4432-8ed5-9ff24fe9aeae"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "count_category",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "P5 - Sort Categories Descending",
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        -1664,
+        480
+      ],
+      "id": "4665a1d6-79fa-42e8-a88a-b7d991815143"
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "percentage",
+              "value": "={{ Math.round(($json.count_category / $('P3c - Parse OpenAI Response & Route').all().length) * 100) || 0 }}"
+            }
+          ],
+          "string": [
+            {
+              "name": "category",
+              "value": "={{ $json.category }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "P5 - Calculate Percentages",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        -1440,
+        480
+      ],
+      "id": "0a034251-3ff8-4eed-a44e-1b232cf6eff8"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P6 Trend & Drift Analysis\n */\nconst triageNode = $('P3c - Parse OpenAI Response & Route');\nconst allTickets = triageNode.all().map(item => item.json);\nallTickets.sort((a, b) => { const dateA = new Date(a.created_at || 0); const dateB = new Date(b.created_at || 0); return dateA - dateB; });\nconst midPoint = Math.floor(allTickets.length / 2);\nconst period1 = allTickets.slice(0, midPoint);\nconst period2 = allTickets.slice(midPoint);\nconst p1Counts = {}; const p2Counts = {};\nperiod1.forEach(t => { const cat = t.category || 'CAT_OTHER'; p1Counts[cat] = (p1Counts[cat] || 0) + 1; });\nperiod2.forEach(t => { const cat = t.category || 'CAT_OTHER'; p2Counts[cat] = (p2Counts[cat] || 0) + 1; });\nconst allCategories = new Set([...Object.keys(p1Counts), ...Object.keys(p2Counts)]);\nconst trends = [];\nallCategories.forEach(cat => { const count1 = p1Counts[cat] || 0; const count2 = p2Counts[cat] || 0; const diff = count2 - count1; let signal = 'stable'; if (diff > 1) signal = 'riser'; else if (diff < -1) signal = 'faller'; trends.push({ category: cat, period1_count: count1, period2_count: count2, difference: diff, signal: signal }); });\ntrends.sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference));\nreturn trends.map(t => ({ json: t }));"
+      },
+      "name": "P6 - Trend & Drift Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -1216,
+        480
+      ],
+      "id": "5f40228c-598d-4d87-a7b8-6a2906bf8437"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P7 & P8: Observability Report\n */\nconst runId = $('P2 - Redact PII').first().json.run_id;\nconst triageNode = $('P3c - Parse OpenAI Response & Route');\nconst allTickets = triageNode.all().map(item => item.json);\nconst totalProcessed = allTickets.length;\nconst totalRouted = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').length;\nconst totalErrors = allTickets.filter(t => t.triage_source === 'error').length;\nconst triageStats = { llm: allTickets.filter(t => t.triage_source === 'llm').length, keyword_fallback: allTickets.filter(t => t.triage_source === 'keyword_fallback').length, error: allTickets.filter(t => t.triage_source === 'error').length };\nconst catCounts = {};\nallTickets.forEach(t => { const cat = t.category || 'CAT_OTHER'; catCounts[cat] = (catCounts[cat] || 0) + 1; });\nconst pareto = $('P5 - Calculate Percentages').all().map(item => item.json);\nconst trends = $('P6 - Trend & Drift Analysis').all().map(item => item.json);\nreturn [{ json: { run_id: runId, timestamp: new Date().toISOString(), summary_processed: totalProcessed, summary_errors: totalErrors, summary_routed: totalRouted, triage_stats: triageStats, category_counts: catCounts, pareto_analysis: pareto, trends: trends } }];"
+      },
+      "name": "P7 & P8 - Compile Observability Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        480
+      ],
+      "id": "7998a62b-216d-4fd3-9615-f28f0d48ea0c"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P7 Routed Tickets\n */\nconst triageNode = $('P3c - Parse OpenAI Response & Route');\nconst allTickets = triageNode.all().map(item => item.json);\nfunction fnvHash(str) { let h = 14695981039346656037n; for (let i = 0; i < str.length; i++) { h ^= BigInt(str.charCodeAt(i)); h *= 1099511628211n; } return h.toString(16).padStart(16, '0').substring(0, 16); }\nconst routedTickets = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').map(t => ({ id: t.id, created_at: t.created_at, channel: t.channel, language: t.language, requester_type: t.requester_type, subject: t.subject, category: t.category, confidence: t.confidence, route_to: t.route_to, route_reason: t.route_reason, triage_source: t.triage_source, draft_reply: t.draft_reply, body_fnva_hash: t.body ? fnvHash(t.body) : '' }));\nreturn routedTickets.map(t => ({ json: t }));"
+      },
+      "name": "P7 - Compile Routed Tickets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -1888,
+        672
+      ],
+      "id": "384670dc-c76f-4425-967c-58be0debd1bd"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "Loekie1103",
+          "mode": "list",
+          "cachedResultName": "Loekie1103",
+          "cachedResultUrl": "https://github.com/Loekie1103"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "educom-helpdesk-n8n-loek",
+          "mode": "list",
+          "cachedResultName": "educom-helpdesk-n8n-loek",
+          "cachedResultUrl": "https://github.com/Loekie1103/educom-helpdesk-n8n-loek"
+        },
+        "filePath": "reports/latest.json",
+        "fileContent": "={{ JSON.stringify($json, null, 2) }}",
+        "commitMessage": "=Update report - {{ $json.timestamp }}"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        -768,
+        384
+      ],
+      "id": "6846a50f-6c85-4dc3-ac3e-da46692c5da4",
+      "name": "Edit a file1",
+      "webhookId": "4a13d88d-b057-49cf-96ba-e2f3e85f050f",
+      "credentials": {
+        "githubApi": {
+          "id": "2ExKsDV1uRdA7qUf",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "Loekie1103",
+          "mode": "list",
+          "cachedResultName": "Loekie1103",
+          "cachedResultUrl": "https://github.com/Loekie1103"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "educom-helpdesk-n8n-loek",
+          "mode": "list",
+          "cachedResultName": "educom-helpdesk-n8n-loek",
+          "cachedResultUrl": "https://github.com/Loekie1103/educom-helpdesk-n8n-loek"
+        },
+        "filePath": "reports/routed_tickets.json",
+        "fileContent": "={{ JSON.stringify($json, null, 2) }}",
+        "commitMessage": "=Routed tickets"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        -1440,
+        672
+      ],
+      "id": "b9659692-9ea6-483c-b926-a01c17a240b0",
+      "name": "Edit a file",
+      "webhookId": "0cc2172c-1176-4266-b342-ddfbaf05c310",
+      "credentials": {
+        "githubApi": {
+          "id": "2ExKsDV1uRdA7qUf",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Routed tickets",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1664,
+        672
+      ],
+      "id": "e04f859a-fe94-45cf-bd53-6d8a9fb4023e",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P7: Format Markdown Report\n */\nconst latestNode = $('P7 & P8 - Compile Observability Report');\nconst reportJson = latestNode.first().json;\nconst runId = reportJson.run_id;\nconst ts = reportJson.timestamp;\nconst processed = reportJson.summary_processed;\nconst routed = reportJson.summary_routed;\nconst errors = reportJson.summary_errors;\nconst pareto = reportJson.pareto_analysis || [];\nconst trends = reportJson.trends || [];\nconst catCounts = reportJson.category_counts || {};\nconst triageStats = reportJson.triage_stats || {};\nconst catNames = { 'CAT_ACCESS_ACCOUNT':'Access & Account','CAT_M365_COPILOT':'M365 Copilot','CAT_GH_COPILOT':'GitHub Copilot','CAT_SOFTWARE_INSTALL':'Software Install','CAT_VPN_REMOTE':'VPN & Remote','CAT_NETWORK_WIFI':'Network & Wi-Fi','CAT_HARDWARE_DEVICE':'Device & Hardware','CAT_PRINTER':'Printer & Scanning','CAT_ONBOARDING_HR':'Onboarding / HR','CAT_PROCUREMENT_BILLING':'Procurement / Billing','CAT_OTHER':'Overig / Onbekend' };\nconst cn = id => catNames[id] || id;\nlet md = '# Helpdesk Report — ' + runId + '\\n\\n';\nmd += '**Report date:** ' + ts + '\\n';\nmd += '**Tickets processed:** ' + processed + '  |  **Routed:** ' + routed + '  |  **Errors:** ' + errors + '\\n';\nif (triageStats.llm !== undefined) { md += '**Triage source:** LLM: ' + (triageStats.llm || 0) + ' | Keyword fallback: ' + (triageStats.keyword_fallback || 0) + ' | Error: ' + (triageStats.error || 0) + '\\n'; }\nmd += '\\n## Pareto Analysis\\n\\n| # | Category | Count | % |\\n|---|----------|-------|---|\\n';\npareto.forEach((p, i) => { md += '| ' + (i+1) + ' | ' + cn(p.category) + ' | ' + p.count_category + ' | ' + p.percentage + '% |\\n'; });\nmd += '\\n## Trends\\n\\n| Category | Period 1 | Period 2 | Delta | Signal |\\n|----------|---------|---------|-------|--------|\\n';\ntrends.forEach(t => { var signal = t.signal === 'riser' ? 'Riser ⬆' : t.signal === 'faller' ? 'Faller ⬇' : 'Stable ➕'; md += '| ' + cn(t.category) + ' | ' + t.period1_count + ' | ' + t.period2_count + ' | ' + (t.difference > 0 ? '+' : '') + t.difference + ' | ' + signal + ' |\\n'; });\nmd += '\\n## Category Breakdown\\n\\n| Category | Count | % |\\n|----------|-------|---|\\n';\nObject.entries(catCounts).sort(function(a,b) { return b[1]-a[1]; }).forEach(function(entry) { var cat = entry[0]; var count = entry[1]; var pct = processed > 0 ? Math.round(count / processed * 100) : 0; md += '| ' + cn(cat) + ' | ' + count + ' | ' + pct + '% |\\n'; });\nmd += '\\n---\\n_Generated by n8n Helpdesk Casus — Route 1 (HTTP CSV) [v2 LLM]_\\n';\nreturn [{ json: { content: md } }];"
+      },
+      "name": "P7 - Format Markdown Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -768,
+        576
+      ],
+      "id": "b2ba639c-de6b-4867-89fe-d2f4c4bb8e5d"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "Loekie1103",
+          "mode": "list",
+          "cachedResultName": "Loekie1103",
+          "cachedResultUrl": "https://github.com/Loekie1103"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "educom-helpdesk-n8n-loek",
+          "mode": "list",
+          "cachedResultName": "educom-helpdesk-n8n-loek",
+          "cachedResultUrl": "https://github.com/Loekie1103/educom-helpdesk-n8n-loek"
+        },
+        "filePath": "reports/report.md",
+        "fileContent": "={{ $json.content }}",
+        "commitMessage": "=Update report.md - {{ $('P7 & P8 - Compile Observability Report').first().json.run_id }}"
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        -544,
+        576
+      ],
+      "id": "9ffc517f-f97a-4b2f-8436-14343d33f409",
+      "webhookId": "md-webhook-001",
+      "name": "Edit a file (report.md)",
+      "credentials": {
+        "githubApi": {
+          "id": "2ExKsDV1uRdA7qUf",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "batching": {
+          "batchSize": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -2464,
+        576
+      ],
+      "id": "d63142b8-2036-4419-8f12-84c18ed0be91",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "openrouter/google/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "openrouter/google/gemini-2.5-flash"
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 100,
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -2384,
+        800
+      ],
+      "id": "752616d7-d3e4-4822-813b-f8c3d9fddf26",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "goCazsRZU27qA12U",
+          "name": "OpenAI account LiteLLM Educom"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Get categories.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Get tickets.csv": {
+      "main": [
+        [
+          {
+            "node": "Parse CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Get categories.json": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Get queues.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Get queues.json": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Get tickets.csv",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse CSV": {
+      "main": [
+        [
+          {
+            "node": "P2 - Redact PII",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P2 - Redact PII": {
+      "main": [
+        [
+          {
+            "node": "P3a - Prepare LLM Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P3a - Prepare LLM Messages": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P3c - Parse OpenAI Response & Route": {
+      "main": [
+        [
+          {
+            "node": "P5 - Group Categories (Pareto Count)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "P7 - Compile Routed Tickets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P5 - Group Categories (Pareto Count)": {
+      "main": [
+        [
+          {
+            "node": "P5 - Sort Categories Descending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P5 - Sort Categories Descending": {
+      "main": [
+        [
+          {
+            "node": "P5 - Calculate Percentages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P5 - Calculate Percentages": {
+      "main": [
+        [
+          {
+            "node": "P6 - Trend & Drift Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P6 - Trend & Drift Analysis": {
+      "main": [
+        [
+          {
+            "node": "P7 & P8 - Compile Observability Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P7 & P8 - Compile Observability Report": {
+      "main": [
+        [
+          {
+            "node": "Edit a file1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "P7 - Format Markdown Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P7 - Compile Routed Tickets": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Edit a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P7 - Format Markdown Report": {
+      "main": [
+        [
+          {
+            "node": "Edit a file (report.md)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "P3c - Parse OpenAI Response & Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Europe/Amsterdam",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "0fa3c8c2-9147-4fa0-ab35-0e88da22994e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f705b3c706bbe3689e4e975952b6e01b6eb93a80fcd5a3a099acc6c333c1f690"
+  },
+  "nodeGroups": [],
+  "id": "gz7qNyxnPUa87hrk",
+  "tags": []
+}

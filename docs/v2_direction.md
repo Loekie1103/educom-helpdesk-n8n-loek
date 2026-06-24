@@ -4,9 +4,11 @@ A reflection on what the next iteration (v2) should look like, based on the gaps
 
 ---
 
-## 1. LLM-Based Triage (Replace Keyword Matching)
+## 1. LLM-Based Triage (Replace Keyword Matching) ✅ Prototype implemented 2026-06-24
 
 **v1 limitation:** Keyword-based matching is brittle. T-0006 ("Wi‑Fi 'CorpNet' connectie faalt") only matched 1 keyword (`access`), landing in Access & Account with medium confidence. An LLM would see it's a network issue.
+
+**v2 prototype (2026-06-24):** Working 20-node workflow in `n8n/backup/`. Uses LangChain Basic LLM Chain + OpenAI Chat Model with Gemini 2.5 Flash via OpenRouter (maxTokens 100, temperature 0.1). P3a builds system prompt from `categories.json`; P3c extracts JSON from LLM response with keyword fallback on failure; `triage_source` attribution per ticket (`llm`/`keyword_fallback`/`error`); error counts now measured from triage_source instead of hardcoded 0. Tested on VPS.
 
 **v2 proposal:**
 - Integrate an LLM API (e.g., OpenAI, Azure OpenAI, or a local model) as a **dedicated triage node**.
