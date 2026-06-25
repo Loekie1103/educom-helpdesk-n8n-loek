@@ -2,7 +2,7 @@
 
 A fully automated n8n workflow for helpdesk ticket triage, PII redaction, Pareto reporting, and trend analysis — running in shadow mode on demo data.
 
-**Current version:** v1.1 — 19 nodes (keyword-based) | **v2 LLM prototype** — 20 nodes (LangChain + Gemini 2.5 Flash, LLM triage with keyword fallback)
+**Current version:** **v3 LLM (batched)** — 20 nodes (single batched LLM call, system prompt sent once, ≈93% input-token reduction vs. v2) | **v2 LLM prototype** — 20 nodes (per-ticket LLM calls) | **v1.1** — 19 nodes (keyword-based)
 
 ## Quick Start
 
@@ -108,6 +108,57 @@ HTTP - categories.json → HTTP - queues.json → HTTP - tickets.csv
 | **triage_source** | Not tracked | `llm` / `keyword_fallback` / `error` per ticket |
 | **Flow order** | Parallel config + tickets → Merge | Sequential: categories → queues → tickets (no Merge) |
 
+## Architecture — v3 LLM (batched) — **current default export** (20 nodes)
+
+The v3 workflow is the same as v2 — same 20 nodes, same connections, same downstream report chain — but the LLM call is **batched**: P3a emits a *single* item with a `system` message (categories list + JSON-array schema) and a *user* message containing the full numbered ticket list, so the LLM classifies all tickets in **one** round-trip and returns a single JSON array of `{id, category, confidence, reason}` objects. P3c parses that array and joins it back to the original tickets on `id`.
+
+```
+Start
+ ↓
+HTTP - categories.json → HTTP - queues.json → HTTP - tickets.csv
+                                                     ↓
+                                                Parse CSV
+                                                     ↓
+                                               P2 Redact PII
+                                                     ↓
+                                  P3a Build ONE batch item
+                                  (messages[system] + chatInput + _batchTickets)
+                                                     ↓
+                OpenAI Chat Model ──→ Basic LLM Chain   ← 1 LLM call total
+               (Gemini 2.5 Flash)         ↓
+                                    P3c Parse JSON array & join on id
+                                  ┌──────┼───────┐
+                                  │      │       │
+                   P5 Group → Sort → Pct        │
+                     ↓                         │
+                   P6 Trends                   │
+                     ↓                         │
+              P7 & P8 Report ──────┬───────┐  │ P7 Routed Tickets
+                     ↓             │       │  ↓      ↓
+               Edit a file1   Format    Edit    Aggregate
+            (reports/latest.json) Markdown report.md    ↓
+                     ↓             ↓              Edit a file
+               Edit a file   (reports/      (reports/
+               (report.md)    report.md)     routed_tickets.json)
+```
+
+### Key differences v2 → v3
+
+| Aspect | v2 LLM | v3 LLM (batched) |
+|---|---|---|
+| **LLM calls per run** | 150 (one per ticket) | **1** (one for the whole batch) |
+| **System prompt** | Embedded in user message of every ticket | Lives in `messages[0].role='system'` (sent once) |
+| **Output schema** | Single JSON object per ticket | Single JSON **array** of `{id, category, confidence, reason}` |
+| **`maxTokens`** | 150 | **6000** (must fit the per-batch array) |
+| **`temperature`** | 0.1 | **0.0** (S3 reproducibility) |
+| **`P3a` output** | N items (one per ticket) | **1 item** carrying `chatInput` + `messages` + `_batchTickets` |
+| **`P3c` logic** | Parse one object per ticket, join implicitly | Parse one array, **join on `id`** to `_batchTickets` |
+| **Triage engine marker** | (none) | `triage_engine: "v3_llm_batched"` in `latest.json` |
+| **Body sent to LLM** | Subject + body (PII-redacted) | **Subject only** (body joined back in P3c) |
+| **Input-token reduction vs. v2** | — | **≈ 93%** (system prompt sent once) |
+| **Failure mode** | Per-ticket `llm` / `error` mix | Single batch: either all `llm` or all `keyword_fallback` |
+| **S3 reproducibility** | Deterministic per-ticket | Deterministic per-batch (temperature 0) |
+
 ### Functional Coverage
 
 | Requirement | Node(s) | Description |
@@ -157,8 +208,9 @@ HTTP - categories.json → HTTP - queues.json → HTTP - tickets.csv
 
 | File | Purpose |
 |------|---------|
-| `n8n/workflow-export.json` | Exported n8n workflow (import ready, v1.1 keyword-based, 19 nodes) |
-| `n8n/backup/Helpdesk Casus – Route 1 (HTTP CSV) [v2 LLM] (1).json` | v2 LLM prototype workflow (20 nodes, LangChain + Gemini 2.5 Flash) |
+| `n8n/workflow-export.json` | Exported n8n workflow (import ready, **v3 LLM batched**, 20 nodes — single batched LLM call, system prompt sent once) |
+| `n8n/backup/Helpdesk Casus – Route 1 (HTTP CSV) [v2 LLM] (1).json` | v2 LLM prototype workflow (20 nodes, per-ticket LLM calls) — kept for reference |
+| `n8n/backup/v2.0-llm-reference.json` | Clean v2 LLM snapshot (pre-v3 diff baseline) |
 | `docs/requirements.md` | Requirements document (FR/NFR/open questions/metrics) |
 | `docs/roadmap.md` | Implementation roadmap with task tracking |
 | `docs/demo_scenario.md` | Live demo walkthrough with 3 showcase tickets |
@@ -190,3 +242,4 @@ HTTP - categories.json → HTTP - queues.json → HTTP - tickets.csv
 | v1.0 | 2026-06-18 | Initial workflow (16 nodes, 120 tickets, JSON reports) |
 | v1.1 | 2026-06-22 | Added 30 tickets (150 total), Markdown report, interactive dashboard |
 | v2 LLM | 2026-06-24 | LLM prototype: LangChain Basic LLM Chain + OpenAI Chat Model (Gemini 2.5 Flash via OpenRouter), keyword fallback, triage_source attribution, P4 draft reply generation, P7/P8 error counting fix |
+| v3 LLM (batched) | 2026-06-25 | Batched LLM triage: one LLM call per run (system prompt sent once), JSON-array output joined on `id` in P3c, `maxTokens` 150→6000, `temperature` 0.1→0.0, ≈93% input-token reduction. `n8n/workflow-export.json` overwritten; v2 LLM kept in `n8n/backup/` |

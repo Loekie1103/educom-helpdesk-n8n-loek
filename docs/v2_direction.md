@@ -136,6 +136,52 @@ A reflection on what the next iteration (v2) should look like, based on the gaps
 
 ---
 
+## 9. v3 — LLM Batch Triage (Token Optimization) ✅ Implemented 2026-06-25
+
+**v2 limitation:** Every ticket was sent to the LLM in its own request, and the full system prompt (11-category list + JSON schema instructions, ≈700 tokens) was re-billed for every one of the 150 tickets. For a 150-ticket batch that worked out to **~112,500 input tokens** of which **~105,000** were the system prompt repeated 150 times.
+
+**v3 implementation:** A single batched LLM call classifies all tickets at once. The system prompt is sent exactly once per run, the user message is a numbered `id — subject` list, and the LLM returns a single JSON array of `{id, category, confidence, reason}` objects that P3c joins back to the original ticket set on `id`.
+
+**Token-usage impact (150 tickets):**
+
+| | v2 (per-ticket) | v3 (batched) |
+|---|---|---|
+| System-prompt tokens | ~700 × 150 = 105,000 | **~700 (sent once)** |
+| Ticket user-message tokens | ~150 × 50 = 7,500 | ~7,500 |
+| Total input tokens | ~112,500 | **~8,200** |
+| Output tokens | ~150 × 25 = 3,750 | ~3,750 (one JSON array) |
+| **Input-token reduction** | — | **≈ 93%** |
+
+**What changed in the workflow:**
+
+| Aspect | v2 LLM | v3 LLM (batched) |
+|---|---|---|
+| System prompt location | Embedded in user message of every ticket | Lives in the `messages[0].role='system'` field of one LLM call |
+| LLM calls per run | 150 (one per ticket, `batchSize: 1`) | **1** (one for the whole batch) |
+| Output schema | Single JSON object per ticket | JSON **array** of `{id, category, confidence, reason}` |
+| `maxTokens` on the chat model | 150 | **6000** (must fit the per-batch array) |
+| `temperature` | 0.1 | **0.0** (S3 reproducibility) |
+| `P3a` output | N items (one per ticket) | **1 item** carrying `chatInput` + `messages` + `_batchTickets` |
+| `P3c` logic | Parse one object per ticket, join implicitly | Parse one array, **join on `id`** to `_batchTickets` |
+| Triage engine marker in `latest.json` | (none) | `triage_engine: "v3_llm_batched"` |
+| Reproducibility (S3) | Deterministic per-ticket | Deterministic per-batch (temperature 0) |
+
+**Trade-offs (documented):**
+
+- **Output-size cap.** The single LLM call must return the full batch. With 150 tickets at ~25 output tokens each, that's ~3,750 output tokens; we raised `maxTokens` from 150 → 6000 to leave headroom. If you scale past ~250 tickets the JSON array may need to be split into multiple calls — at that point switch back to per-ticket (v2) or introduce chunking.
+- **Single point of failure.** If the LLM call times out or returns unparseable text, the *entire* run falls back to keyword triage (`triage_source: 'keyword_fallback'` for all tickets). That is acceptable for a shadow-mode workflow and is in fact cleaner than v2's mixed per-ticket `llm`/`error` outcomes — either the batch works or it doesn't.
+- **Body is no longer sent to the LLM.** v3 only sends `id` + `subject` to the model (bodies are redacted in P2 and would not fit alongside 150 subjects anyway). The full redacted ticket is joined back to the LLM output in P3c, so P4 draft replies, P5 Pareto, P6 Trends, P7 routed, P7 markdown and the `latest.json` report are unaffected.
+
+**Why this matters:** On Gemini 2.5 Flash via OpenRouter the per-run cost drops by an order of magnitude, the workflow gets faster (1 round-trip instead of 150), and the `run_id` stays deterministic (same FNV-1a hash of sorted ticket IDs) — so S2 idempotency and S3 reproducibility carry over unchanged.
+
+**Files:**
+
+- `n8n/workflow-export.json` — overwritten with the v3 batched workflow (20 nodes, structurally identical to v2 except `P3a`, `OpenAI Chat Model`, `P3c`, `P3b`, `P7 & P8`, `P7 - Format Markdown`).
+- `n8n/backup/v2.0-llm-reference.json` — clean snapshot of the pre-v3 v2 LLM workflow for diffing.
+- `n8n/backup/Helpdesk Casus – Route 1 (HTTP CSV) [v2 LLM] (1).json` — unchanged original v2 export, kept for reference.
+
+---
+
 ## Open Questions to the Customer (v2)
 
 1. Which LLM provider is preferred (OpenAI, Azure, local model)?

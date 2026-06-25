@@ -1,5 +1,5 @@
 {
-  "name": "Helpdesk Casus – Route 1 (HTTP CSV)",
+  "name": "Helpdesk Casus – Route 1 (HTTP CSV) [v2 LLM]",
   "nodes": [
     {
       "parameters": {},
@@ -7,10 +7,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -688,
-        80
+        -5424,
+        1008
       ],
-      "id": "e79267cc-f57e-4930-abd0-29d543e0b54c"
+      "id": "e91dcef0-b70e-4fc3-b657-7739ed4de55b"
     },
     {
       "parameters": {
@@ -22,10 +22,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [
-        -464,
-        -128
+        -4752,
+        1008
       ],
-      "id": "8386a927-d541-4f15-9f67-c68ea383e8de"
+      "id": "560026e2-b216-461c-be6a-ad19b075ad46"
     },
     {
       "parameters": {
@@ -37,10 +37,10 @@
       "type": "n8n-nodes-base.spreadsheetFile",
       "typeVersion": 1,
       "position": [
-        -288,
-        -128
+        -4528,
+        1008
       ],
-      "id": "b123bada-3599-4e2f-8f9d-8e5e9a028763"
+      "id": "90198f0e-4476-4e30-b62d-d651d6f3d92a"
     },
     {
       "parameters": {
@@ -51,10 +51,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [
-        -464,
-        80
+        -5200,
+        1008
       ],
-      "id": "67379911-1daf-4ffd-814f-4eb00700c583"
+      "id": "609145d5-f96e-487a-8f26-9dec56ed0754"
     },
     {
       "parameters": {
@@ -65,36 +65,49 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [
-        -464,
-        304
+        -4976,
+        1008
       ],
-      "id": "262d6434-7a36-43e9-a7f6-441925cd6b0a"
+      "id": "7a67cc21-ae47-4e38-89d2-8dfd068b6ec8"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P2: PII Redaction & Date Formatting\n * Redacts PII and converts Excel decimal/serial date formats into clean ISO dates.\n */\nfunction excelDateToISO(serial) {\n  const num = parseFloat(serial);\n  if (isNaN(num)) return serial;\n  const excelEpoch = new Date(1899, 11, 30);\n  const days = Math.floor(num);\n  const ms = Math.round((num - days) * 24 * 60 * 60 * 1000);\n  const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000 + ms);\n  return date.toISOString().replace('T', ' ').substring(0, 19);\n}\n\n// Generate run_id for P8 Observability\n// S2 Idempotency & P8: Deterministic run_id from sorted ticket IDs (FNV-1a pure-JS)\nfunction fnvHash(str) {\n  let h = 14695981039346656037n;\n  for (let i = 0; i < str.length; i++) { h ^= BigInt(str.charCodeAt(i)); h *= 1099511628211n; }\n  return h.toString(16).padStart(16, '0').substring(0, 16);\n}\nconst allIds = items.map(item => item.json.id || '').sort().join('|');\nconst runId = 'RUN-' + fnvHash(allIds + '|' + items.length).toUpperCase();\n\nreturn items.map(item => {\n  let body = item.json.body || '';\n  let subject = item.json.subject || '';\n  let created_at = item.json.created_at || '';\n\n  // Convert date if it is an Excel serial format\n  if (created_at && !isNaN(parseFloat(created_at))) {\n    created_at = excelDateToISO(created_at);\n  }\n\n  // Regex for emails\n  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n  // Regex for Dutch phone numbers (e.g. 06-12345678, +31 6 12345678)\n  const phoneRegex = /(?:\\+31|0)(?:\\s?\\d){9}/g;\n  // Regex for BSN-like 9 digit strings\n  const bsnRegex = /\\b\\d{9}\\b/g;\n\n  body = body.replace(emailRegex, '[EMAIL_REDACTED]');\n  body = body.replace(phoneRegex, '[PHONE_REDACTED]');\n  body = body.replace(bsnRegex, '[BSN_REDACTED]');\n\n  subject = subject.replace(emailRegex, '[EMAIL_REDACTED]');\n  subject = subject.replace(phoneRegex, '[PHONE_REDACTED]');\n  subject = subject.replace(bsnRegex, '[BSN_REDACTED]');\n\n  return {\n    json: {\n      ...item.json,\n      run_id: runId,\n      created_at,\n      body,\n      subject\n    }\n  };\n});"
+        "jsCode": "/**\n * P2: PII Redaction & Date Formatting\n */\nfunction excelDateToISO(serial) {\n  const num = parseFloat(serial);\n  if (isNaN(num)) return serial;\n  const excelEpoch = new Date(1899, 11, 30);\n  const days = Math.floor(num);\n  const ms = Math.round((num - days) * 24 * 60 * 60 * 1000);\n  const date = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000 + ms);\n  return date.toISOString().replace('T', ' ').substring(0, 19);\n}\nfunction fnvHash(str) {\n  let h = 14695981039346656037n;\n  for (let i = 0; i < str.length; i++) { h ^= BigInt(str.charCodeAt(i)); h *= 1099511628211n; }\n  return h.toString(16).padStart(16, '0').substring(0, 16);\n}\nconst allIds = items.map(item => item.json.id || '').sort().join('|');\nconst runId = 'RUN-' + fnvHash(allIds + '|' + items.length).toUpperCase();\nreturn items.map(item => {\n  let body = item.json.body || '';\n  let subject = item.json.subject || '';\n  let created_at = item.json.created_at || '';\n  if (created_at && !isNaN(parseFloat(created_at))) { created_at = excelDateToISO(created_at); }\n  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n  const phoneRegex = /(?:\\+31|0)(?:\\s?\\d){9}/g;\n  const bsnRegex = /\\b\\d{9}\\b/g;\n  body = body.replace(emailRegex, '[EMAIL_REDACTED]');\n  body = body.replace(phoneRegex, '[PHONE_REDACTED]');\n  body = body.replace(bsnRegex, '[BSN_REDACTED]');\n  subject = subject.replace(emailRegex, '[EMAIL_REDACTED]');\n  subject = subject.replace(phoneRegex, '[PHONE_REDACTED]');\n  subject = subject.replace(bsnRegex, '[BSN_REDACTED]');\n  return { json: { ...item.json, run_id: runId, created_at, body, subject } };\n});"
       },
       "name": "P2 - Redact PII",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        -112,
-        -128
+        -4304,
+        1008
       ],
-      "id": "7eee09bf-f802-4c8b-b466-8739456efa5a"
+      "id": "59373faa-2c0f-481f-9171-5b889e9aa50d"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P3 Triage & P4 Concept Reply — S4 CONFIG-DRIVEN\n * Keywords: from categories.json, Queues: from queues.json\n * Routing: routingMap below; validated against queues.json at runtime\n * Merge node upstream ensures all inputs arrive together before this runs.\n */\n\n// Pull configs from upstream HTTP nodes (all available now due to Merge)\nconst categoriesConfig = $('HTTP - Get categories.json').first().json;\nconst queuesConfig = $('HTTP - Get queues.json').first().json;\n\nif (!categoriesConfig || !categoriesConfig.categories) throw new Error('Failed to load categories.json');\nif (!queuesConfig || !queuesConfig.queues) throw new Error('Failed to load queues.json');\n\n// Build valid-queue set from queues.json\nconst validQueues = new Set(queuesConfig.queues.map(q => q.id));\n\n// Category->Queue routing (single place to edit routing policy)\nconst routingMap = {\n  'CAT_ACCESS_ACCOUNT':    'Q_IDENTITY_ACCESS',\n  'CAT_M365_COPILOT':      'Q_M365',\n  'CAT_GH_COPILOT':        'Q_DEVELOPER_EXPERIENCE',\n  'CAT_SOFTWARE_INSTALL':  'Q_WORKPLACE',\n  'CAT_VPN_REMOTE':        'Q_NETWORK',\n  'CAT_NETWORK_WIFI':      'Q_NETWORK',\n  'CAT_HARDWARE_DEVICE':   'Q_WORKPLACE',\n  'CAT_PRINTER':           'Q_WORKPLACE',\n  'CAT_ONBOARDING_HR':     'Q_HR',\n  'CAT_PROCUREMENT_BILLING':'Q_FINANCE_PROCUREMENT',\n  'CAT_OTHER':             'Q_IT_SERVICE_DESK'\n};\n\n// Build category list from categories.json + routing map\nconst categories = categoriesConfig.categories.map(cat => {\n  const queueId = routingMap[cat.id] || 'Q_IT_SERVICE_DESK';\n  if (!validQueues.has(queueId)) {\n    throw new Error(\"Queue '\" + queueId + \"' for category '\" + cat.id + \"' not found in queues.json\");\n  }\n  return { id: cat.id, queue: queueId, keywords: cat.keywords || [] };\n});\n\n// Filter ticket items (from P2 pipeline) out of the merged items array\nconst ticketItems = items.filter(item => item.json.id !== undefined);\n\n// Process ticket items\nreturn ticketItems.map(item => {\n  const ticket = item.json;\n  const content = ((ticket.subject || '') + ' ' + (ticket.body || '')).toLowerCase();\n\n  let bestCat = null;\n  let maxMatches = 0;\n  categories.forEach(cat => {\n    let matches = 0;\n    cat.keywords.forEach(kw => {\n      if (content.includes(kw.toLowerCase())) matches++;\n    });\n    if (matches > maxMatches) { maxMatches = matches; bestCat = cat; }\n  });\n\n  let category = 'CAT_OTHER';\n  let confidence = 'low';\n  let route_to = 'Q_IT_SERVICE_DESK';\n  let route_reason = 'No clear keywords found, routed to main desk.';\n\n  if (bestCat) {\n    category = bestCat.id;\n    route_to = bestCat.queue;\n    if (maxMatches >= 3) {\n      confidence = 'high';\n      route_reason = 'Matched ' + maxMatches + ' keywords for ' + bestCat.id + '.';\n    } else if (maxMatches > 0) {\n      confidence = 'medium';\n      route_reason = 'Matched ' + maxMatches + ' keyword(s) for ' + bestCat.id + '.';\n    }\n  }\n\n  let draft_reply = '';\n  if (route_to !== 'Q_IT_SERVICE_DESK') {\n    draft_reply = 'Beste medewerker, Bedankt voor uw melding. We hebben uw ticket gecategoriseerd onder ' + category + ' en doorgezet naar het specialistische team (' + route_to + '). Zij nemen dit zo snel mogelijk in behandeling. Met vriendelijke groet, IT Service Desk Support';\n  }\n\n  return { json: { ...ticket, category, confidence, route_to, route_reason, draft_reply } };\n});"
+        "jsCode": "// 1. Fetch categories\nconst categoriesConfig = $('HTTP - Get categories.json').first().json;\nif (!categoriesConfig || !categoriesConfig.categories) {\n  throw new Error('Failed to load categories.json');\n}\n\n// 2. Build the category list for the LLM\nconst catList = categoriesConfig.categories\n  .map(c => `${c.id}: ${c.name} - ${c.description}`)\n  .join('\\n');\n\n// 3. Define a strict System Prompt\nconst systemPrompt = `You are an IT Helpdesk triage assistant. Categorize the following ticket into exactly ONE of these categories:\\n${catList}\\n\\nYou must respond ONLY with a valid, raw JSON object using this exact schema. Do not add markdown formatting:\\n{\"category\": \"CAT_ID_HERE\", \"confidence\": 0.95, \"reason\": \"Short reason here\"}`;\n\n// 4. Filter only ticket items (ignore the config inputs)\nconst ticketItems = items.filter(item => item.json && item.json.id);\n\n// LIMIT FOR TESTING: Only take the first 5 tickets\nconst testTickets = [...ticketItems].sort(() => 0.5 - Math.random()).slice(0, 20);\n\n// 5. Output the ticket data and the final prompt\nreturn testTickets.map(item => {\n  const t = item.json;\n  const userPrompt = `Subject: ${t.subject || 'N/A'}\\nBody: ${t.body || 'N/A'}`;\n  const fullPrompt = `${systemPrompt}\\n\\nTicket Details:\\n${userPrompt}`;\n\n  return {\n    json: {\n      _ticket: t,\n      prompt: fullPrompt,\n      }\n    }\n  });"
       },
-      "name": "P3 & P4 - Triage & Draft Reply",
+      "name": "P3a - Prepare LLM Messages",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        256,
-        80
+        -4080,
+        1008
       ],
-      "id": "90b095a6-77a5-4757-8996-55074bd84974"
+      "id": "8fab70f2-26bf-4b27-a4c5-2665ede4208f"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * P3c: Parse OpenAI Response & Route\n * P4: Generate draft reply for misrouted tickets\n */\nconst categoriesConfig = $('HTTP - Get categories.json').first().json;\nconst queuesConfig = $('HTTP - Get queues.json').first().json;\n\nif (!categoriesConfig || !categoriesConfig.categories) throw new Error('Failed to load categories.json');\nif (!queuesConfig || !queuesConfig.queues) throw new Error('Failed to load queues.json');\n\nconst validQueues = new Set(queuesConfig.queues.map(q => q.id));\nconst validCategories = new Set(categoriesConfig.categories.map(c => c.id));\n\nconst routingMap = {\n  'CAT_ACCESS_ACCOUNT':'Q_IDENTITY_ACCESS','CAT_M365_COPILOT':'Q_M365',\n  'CAT_GH_COPILOT':'Q_DEVELOPER_EXPERIENCE','CAT_SOFTWARE_INSTALL':'Q_WORKPLACE',\n  'CAT_VPN_REMOTE':'Q_NETWORK','CAT_NETWORK_WIFI':'Q_NETWORK',\n  'CAT_HARDWARE_DEVICE':'Q_WORKPLACE','CAT_PRINTER':'Q_WORKPLACE',\n  'CAT_ONBOARDING_HR':'Q_HR','CAT_PROCUREMENT_BILLING':'Q_FINANCE_PROCUREMENT',\n  'CAT_OTHER':'Q_IT_SERVICE_DESK'\n};\n\n// Keyword-based fallback triage\nfunction keywordTriage(subject, body) {\n  const content = ((subject || '') + ' ' + (body || '')).toLowerCase();\n  let bestCat = null;\n  let maxMatches = 0;\n  categoriesConfig.categories.forEach(cat => {\n    let matches = 0;\n    (cat.keywords || []).forEach(kw => {\n      if (content.includes(kw.toLowerCase())) matches++;\n    });\n    if (matches > maxMatches) { maxMatches = matches; bestCat = cat; }\n  });\n  if (bestCat && maxMatches > 0) {\n    const confidence = maxMatches >= 3 ? 0.85 : maxMatches >= 2 ? 0.65 : 0.50;\n    const routeTo = routingMap[bestCat.id] || 'Q_IT_SERVICE_DESK';\n    return { category: bestCat.id, confidence, reason: 'Keyword fallback: matched ' + maxMatches + ' keyword(s) for ' + bestCat.id + '.', route_to: routeTo, triage_source: 'keyword_fallback' };\n  }\n  return { category: 'CAT_OTHER', confidence: 0.40, reason: 'No keywords matched, defaulting to CAT_OTHER.', route_to: 'Q_IT_SERVICE_DESK', triage_source: 'keyword_fallback' };\n}\n\n// Robust JSON extractor from LLM text output\nfunction extractJSON(text) {\n  if (!text) return null;\n  try {\n    // Strip markdown code blocks if the LLM adds them\n    let cleanText = text.replace(/```json\\s*/gi, '').replace(/```\\s*/gi, '').trim();\n    // Try direct parse first\n    try { return JSON.parse(cleanText); } catch(e) {}\n    // Try to find JSON object with regex\n    const match = cleanText.match(/\\{[^{}]*\"category\"[^{}]*\\}/);\n    if (match) {\n      try { return JSON.parse(match[0]); } catch(e) {}\n    }\n    return null;\n  } catch(e) {\n    return null;\n  }\n}\n\n// Generate draft reply for misrouted tickets (P4)\nfunction generateDraftReply(category, routeTo) {\n  const queueName = queuesConfig.queues.find(q => q.id === routeTo);\n  const target = queueName ? queueName.name : routeTo;\n  const catName = categoriesConfig.categories.find(c => c.id === category);\n  const catLabel = catName ? catName.name : category;\n  return 'Beste medewerker,\\n\\nBedankt voor uw melding. We hebben uw ticket gecategoriseerd onder \"' + catLabel + '\" en doorgezet naar het specialistische team: ' + target + '. Zij nemen dit zo snel mogelijk in behandeling.\\n\\nMet vriendelijke groet,\\nIT Service Desk Support';\n}\n\n// Process each ticket that came through the LLM chain\nreturn items.map(item => {\n  const ticket = item.json._ticket || {};\n  const llmText = item.json.text || item.json.response || '';\n  let result;\n\n  try {\n    const parsed = extractJSON(llmText);\n    if (parsed && parsed.category && validCategories.has(parsed.category)) {\n      const routeTo = routingMap[parsed.category] || 'Q_IT_SERVICE_DESK';\n      if (!validQueues.has(routeTo)) throw new Error('Invalid queue: ' + routeTo);\n      result = {\n        category: parsed.category,\n        confidence: typeof parsed.confidence === 'number' ? parsed.confidence : parseFloat(parsed.confidence) || 0.80,\n        route_to: routeTo,\n        route_reason: parsed.reason || 'LLM classified as ' + parsed.category + '.',\n        triage_source: 'llm'\n      };\n    } else {\n      // LLM returned invalid/missing category — fall back to keyword triage\n      result = keywordTriage(ticket.subject, ticket.body);\n    }\n  } catch(e) {\n    // Exception during parsing — fall back to keyword triage\n    result = keywordTriage(ticket.subject, ticket.body);\n    result.triage_source = 'error';\n  }\n\n  // Generate draft reply for tickets routed away from main desk (P4)\n  let draft_reply = '';\n  if (result.route_to !== 'Q_IT_SERVICE_DESK') {\n    draft_reply = generateDraftReply(result.category, result.route_to);\n  }\n\n  return {\n    json: {\n      ...ticket,\n      category: result.category,\n      confidence: result.confidence,\n      route_to: result.route_to,\n      route_reason: result.route_reason,\n      draft_reply: draft_reply,\n      triage_source: result.triage_source\n    }\n  };\n});"
+      },
+      "name": "P3c - Parse OpenAI Response & Route",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        -3504,
+        1008
+      ],
+      "id": "c18f878a-6e4b-4841-a352-c5c1c3415cf8"
     },
     {
       "parameters": {
@@ -113,10 +126,10 @@
       "type": "n8n-nodes-base.itemLists",
       "typeVersion": 2.1,
       "position": [
-        576,
-        -112
+        -3280,
+        912
       ],
-      "id": "00b5eca9-3881-4471-9368-b9e354cb093d"
+      "id": "9d5fcdaf-64e0-447d-9e16-86068cb6b364"
     },
     {
       "parameters": {
@@ -134,10 +147,10 @@
       "type": "n8n-nodes-base.sort",
       "typeVersion": 1,
       "position": [
-        784,
-        -112
+        -3056,
+        912
       ],
-      "id": "d55aad47-3fc1-4915-b506-86eddd17d8c0"
+      "id": "f472ec4b-6d5a-4731-a151-8746d15b1b10"
     },
     {
       "parameters": {
@@ -145,7 +158,7 @@
           "number": [
             {
               "name": "percentage",
-              "value": "={{ Math.round(($json.count_category / $('P3 & P4 - Triage & Draft Reply').all().length) * 100) || 0 }}"
+              "value": "={{ Math.round(($json.count_category / $('P3c - Parse OpenAI Response & Route').all().length) * 100) || 0 }}"
             }
           ],
           "string": [
@@ -161,63 +174,49 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
       "position": [
-        976,
-        -112
+        -2832,
+        912
       ],
-      "id": "1a543ac7-25ad-4c54-a9df-820be7bfe142"
+      "id": "ff79317c-8da6-48fd-98da-a6a76f4325b6"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P6 Trend & Drift Analysis\n * Splits tickets into Period 1 and Period 2 by date,\n * and analyzes rises/falls in category occurrences.\n */\nconst triageNode = $('P3 & P4 - Triage & Draft Reply');\nconst allTickets = triageNode.all().map(item => item.json);\n\nallTickets.sort((a, b) => {\n  const dateA = new Date(a.created_at || 0);\n  const dateB = new Date(b.created_at || 0);\n  return dateA - dateB;\n});\n\nconst midPoint = Math.floor(allTickets.length / 2);\nconst period1 = allTickets.slice(0, midPoint);\nconst period2 = allTickets.slice(midPoint);\n\nconst p1Counts = {};\nconst p2Counts = {};\n\nperiod1.forEach(t => { const cat = t.category || 'CAT_OTHER'; p1Counts[cat] = (p1Counts[cat] || 0) + 1; });\nperiod2.forEach(t => { const cat = t.category || 'CAT_OTHER'; p2Counts[cat] = (p2Counts[cat] || 0) + 1; });\n\nconst allCategories = new Set([...Object.keys(p1Counts), ...Object.keys(p2Counts)]);\nconst trends = [];\n\nallCategories.forEach(cat => {\n  const count1 = p1Counts[cat] || 0;\n  const count2 = p2Counts[cat] || 0;\n  const diff = count2 - count1;\n  let signal = 'stable';\n  if (diff > 1) signal = 'riser';\n  else if (diff < -1) signal = 'faller';\n  trends.push({ category: cat, period1_count: count1, period2_count: count2, difference: diff, signal: signal });\n});\n\ntrends.sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference));\nreturn trends.map(t => ({ json: t }));"
+        "jsCode": "/**\n * P6 Trend & Drift Analysis\n */\nconst triageNode = $('P3c - Parse OpenAI Response & Route');\nconst allTickets = triageNode.all().map(item => item.json);\nallTickets.sort((a, b) => { const dateA = new Date(a.created_at || 0); const dateB = new Date(b.created_at || 0); return dateA - dateB; });\nconst midPoint = Math.floor(allTickets.length / 2);\nconst period1 = allTickets.slice(0, midPoint);\nconst period2 = allTickets.slice(midPoint);\nconst p1Counts = {}; const p2Counts = {};\nperiod1.forEach(t => { const cat = t.category || 'CAT_OTHER'; p1Counts[cat] = (p1Counts[cat] || 0) + 1; });\nperiod2.forEach(t => { const cat = t.category || 'CAT_OTHER'; p2Counts[cat] = (p2Counts[cat] || 0) + 1; });\nconst allCategories = new Set([...Object.keys(p1Counts), ...Object.keys(p2Counts)]);\nconst trends = [];\nallCategories.forEach(cat => { const count1 = p1Counts[cat] || 0; const count2 = p2Counts[cat] || 0; const diff = count2 - count1; let signal = 'stable'; if (diff > 1) signal = 'riser'; else if (diff < -1) signal = 'faller'; trends.push({ category: cat, period1_count: count1, period2_count: count2, difference: diff, signal: signal }); });\ntrends.sort((a, b) => Math.abs(b.difference) - Math.abs(a.difference));\nreturn trends.map(t => ({ json: t }));"
       },
       "name": "P6 - Trend & Drift Analysis",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1184,
-        -112
+        -2608,
+        912
       ],
-      "id": "3fd29a63-edd2-40d0-ac76-5a56af77b94d"
+      "id": "4f942b5c-e918-4029-809d-b14897a69627"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P7 & P8: Observability and Report Compilation\n */\nconst runId = $('P2 - Redact PII').first().json.run_id;\nconst triageNode = $('P3 & P4 - Triage & Draft Reply');\nconst allTickets = triageNode.all().map(item => item.json);\n\nconst totalProcessed = allTickets.length;\nconst totalRouted = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').length;\nconst totalErrors = 0;\n\nconst catCounts = {};\nallTickets.forEach(t => { const cat = t.category || 'CAT_OTHER'; catCounts[cat] = (catCounts[cat] || 0) + 1; });\n\nconst pareto = $('P5 - Calculate Percentages').all().map(item => item.json);\nconst trends = $('P6 - Trend & Drift Analysis').all().map(item => item.json);\n\nreturn [{\n  json: {\n    run_id: runId,\n    timestamp: new Date().toISOString(),\n    summary_processed: totalProcessed,\n    summary_errors: totalErrors,\n    summary_routed: totalRouted,\n    category_counts: catCounts,\n    pareto_analysis: pareto,\n    trends: trends\n  }\n}];"
+        "jsCode": "/**\n * P7 & P8: Observability Report\n */\nconst runId = $('P2 - Redact PII').first().json.run_id;\nconst triageNode = $('P3c - Parse OpenAI Response & Route');\nconst allTickets = triageNode.all().map(item => item.json);\nconst totalProcessed = allTickets.length;\nconst totalRouted = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').length;\nconst totalErrors = allTickets.filter(t => t.triage_source === 'error').length;\nconst triageStats = { llm: allTickets.filter(t => t.triage_source === 'llm').length, keyword_fallback: allTickets.filter(t => t.triage_source === 'keyword_fallback').length, error: allTickets.filter(t => t.triage_source === 'error').length };\nconst catCounts = {};\nallTickets.forEach(t => { const cat = t.category || 'CAT_OTHER'; catCounts[cat] = (catCounts[cat] || 0) + 1; });\nconst pareto = $('P5 - Calculate Percentages').all().map(item => item.json);\nconst trends = $('P6 - Trend & Drift Analysis').all().map(item => item.json);\nreturn [{ json: { run_id: runId, timestamp: new Date().toISOString(), summary_processed: totalProcessed, summary_errors: totalErrors, summary_routed: totalRouted, triage_stats: triageStats, category_counts: catCounts, pareto_analysis: pareto, trends: trends } }];"
       },
       "name": "P7 & P8 - Compile Observability Report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1376,
-        -112
+        -2384,
+        912
       ],
-      "id": "d4abd740-32a0-41b3-b7fc-b680d68233b8"
+      "id": "bc65badf-0bcc-43bc-b5c4-e7971d110163"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P7 Routed Tickets List Compilation\n * S1: Data minimalization - FNV-1a hash (pure-JS, no require)\n */\nconst triageNode = $('P3 & P4 - Triage & Draft Reply');\nconst allTickets = triageNode.all().map(item => item.json);\n\nfunction fnvHash(str) {\n  let h = 14695981039346656037n;\n  for (let i = 0; i < str.length; i++) { h ^= BigInt(str.charCodeAt(i)); h *= 1099511628211n; }\n  return h.toString(16).padStart(16, '0').substring(0, 16);\n}\n\nconst routedTickets = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').map(t => ({\n  id: t.id, created_at: t.created_at, channel: t.channel, language: t.language,\n  requester_type: t.requester_type, subject: t.subject, category: t.category,\n  confidence: t.confidence, route_to: t.route_to, route_reason: t.route_reason,\n  draft_reply: t.draft_reply, body_fnva_hash: t.body ? fnvHash(t.body) : ''\n}));\n\nreturn routedTickets.map(t => ({ json: t }));"
+        "jsCode": "/**\n * P7 Routed Tickets\n */\nconst triageNode = $('P3c - Parse OpenAI Response & Route');\nconst allTickets = triageNode.all().map(item => item.json);\nfunction fnvHash(str) { let h = 14695981039346656037n; for (let i = 0; i < str.length; i++) { h ^= BigInt(str.charCodeAt(i)); h *= 1099511628211n; } return h.toString(16).padStart(16, '0').substring(0, 16); }\nconst routedTickets = allTickets.filter(t => t.route_to !== 'Q_IT_SERVICE_DESK').map(t => ({ id: t.id, created_at: t.created_at, channel: t.channel, language: t.language, requester_type: t.requester_type, subject: t.subject, category: t.category, confidence: t.confidence, route_to: t.route_to, route_reason: t.route_reason, triage_source: t.triage_source, draft_reply: t.draft_reply, body_fnva_hash: t.body ? fnvHash(t.body) : '' }));\nreturn routedTickets.map(t => ({ json: t }));"
       },
       "name": "P7 - Compile Routed Tickets",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        560,
-        240
+        -3280,
+        1104
       ],
-      "id": "d7793595-e188-43e8-8630-bb17d349e6c4"
-    },
-    {
-      "parameters": {
-        "mode": "chooseBranch",
-        "numberInputs": 3
-      },
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        64,
-        64
-      ],
-      "id": "76e448e3-d8df-4ad7-9ee3-88b6075e6bc1",
-      "name": "Merge"
+      "id": "57eeaa67-e80f-4f2f-90fc-722ebb7f166f"
     },
     {
       "parameters": {
@@ -244,10 +243,10 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        1552,
-        -112
+        -2160,
+        816
       ],
-      "id": "5704bf47-eac7-422d-8d75-6b64fb4c14f4",
+      "id": "ada42d1b-c8f9-4f39-8fd0-4ec7ea24dca3",
       "name": "Edit a file1",
       "webhookId": "4a13d88d-b057-49cf-96ba-e2f3e85f050f",
       "credentials": {
@@ -282,10 +281,10 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        928,
-        240
+        -2832,
+        1104
       ],
-      "id": "6b091e58-502f-4688-a0f9-91d5c84fefee",
+      "id": "6fcf66e5-67eb-4fa0-ba35-c772945db0f4",
       "name": "Edit a file",
       "webhookId": "0cc2172c-1176-4266-b342-ddfbaf05c310",
       "credentials": {
@@ -304,24 +303,24 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        752,
-        240
+        -3056,
+        1104
       ],
-      "id": "8af23cd1-57f6-4874-b235-079655055a47",
+      "id": "583fdca0-1cda-48f8-ae0a-e262b3f119e7",
       "name": "Aggregate"
     },
     {
       "parameters": {
-        "jsCode": "/**\n * P7: Format Markdown Report — human-readable report.md\n */\nconst latestNode = $('P7 & P8 - Compile Observability Report');\nconst reportJson = latestNode.first().json;\n\nconst runId = reportJson.run_id;\nconst ts = reportJson.timestamp;\nconst processed = reportJson.summary_processed;\nconst routed = reportJson.summary_routed;\nconst errors = reportJson.summary_errors;\nconst pareto = reportJson.pareto_analysis || [];\nconst trends = reportJson.trends || [];\nconst catCounts = reportJson.category_counts || {};\n\nconst catNames = {\n  'CAT_ACCESS_ACCOUNT': 'Access & Account',\n  'CAT_M365_COPILOT': 'M365 Copilot',\n  'CAT_GH_COPILOT': 'GitHub Copilot',\n  'CAT_SOFTWARE_INSTALL': 'Software Install',\n  'CAT_VPN_REMOTE': 'VPN & Remote',\n  'CAT_NETWORK_WIFI': 'Network & Wi-Fi',\n  'CAT_HARDWARE_DEVICE': 'Device & Hardware',\n  'CAT_PRINTER': 'Printer & Scanning',\n  'CAT_ONBOARDING_HR': 'Onboarding / HR',\n  'CAT_PROCUREMENT_BILLING': 'Procurement / Billing',\n  'CAT_OTHER': 'Overig / Onbekend'\n};\n\nconst cn = id => catNames[id] || id;\n\nlet md = `# Helpdesk Report — ${runId}\\n\\n`;\nmd += `**Report date:** ${ts}\\n`;\nmd += `**Tickets processed:** ${processed}  |  **Routed:** ${routed}  |  **Errors:** ${errors}\\n\\n`;\n\n// Pareto table\nmd += `## Pareto Analysis\\n\\n`;\nmd += `| # | Category | Count | % |\\n`;\nmd += `|---|----------|-------|---|\\n`;\npareto.forEach((p, i) => {\n  md += `| ${i+1} | ${cn(p.category)} | ${p.count_category} | ${p.percentage}% |\\n`;\n});\n\n// Trends table\nmd += `\\n## Trends\\n\\n`;\nmd += `| Category | Period 1 | Period 2 | Delta | Signal |\\n`;\nmd += `|----------|---------|---------|-------|--------|\\n`;\ntrends.forEach(t => {\n  const signal = t.signal === 'riser' ? 'Riser ⬆' : t.signal === 'faller' ? 'Faller ⬇' : 'Stable ➕';\n  md += `| ${cn(t.category)} | ${t.period1_count} | ${t.period2_count} | ${t.difference > 0 ? '+' : ''}${t.difference} | ${signal} |\\n`;\n});\n\n// Category counts\nmd += `\\n## Category Breakdown\\n\\n`;\nmd += `| Category | Count | % |\\n`;\nmd += `|----------|-------|---|\\n`;\nObject.entries(catCounts).sort((a,b) => b[1]-a[1]).forEach(([cat, count]) => {\n  const pct = processed > 0 ? Math.round(count / processed * 100) : 0;\n  md += `| ${cn(cat)} | ${count} | ${pct}% |\\n`;\n});\n\nmd += `\\n---\\n_Generated by n8n Helpdesk Casus — Route 1 (HTTP CSV)_\\n`;\n\nreturn [{ json: { content: md } }];"
+        "jsCode": "/**\n * P7: Format Markdown Report\n */\nconst latestNode = $('P7 & P8 - Compile Observability Report');\nconst reportJson = latestNode.first().json;\nconst runId = reportJson.run_id;\nconst ts = reportJson.timestamp;\nconst processed = reportJson.summary_processed;\nconst routed = reportJson.summary_routed;\nconst errors = reportJson.summary_errors;\nconst pareto = reportJson.pareto_analysis || [];\nconst trends = reportJson.trends || [];\nconst catCounts = reportJson.category_counts || {};\nconst triageStats = reportJson.triage_stats || {};\nconst catNames = { 'CAT_ACCESS_ACCOUNT':'Access & Account','CAT_M365_COPILOT':'M365 Copilot','CAT_GH_COPILOT':'GitHub Copilot','CAT_SOFTWARE_INSTALL':'Software Install','CAT_VPN_REMOTE':'VPN & Remote','CAT_NETWORK_WIFI':'Network & Wi-Fi','CAT_HARDWARE_DEVICE':'Device & Hardware','CAT_PRINTER':'Printer & Scanning','CAT_ONBOARDING_HR':'Onboarding / HR','CAT_PROCUREMENT_BILLING':'Procurement / Billing','CAT_OTHER':'Overig / Onbekend' };\nconst cn = id => catNames[id] || id;\nlet md = '# Helpdesk Report — ' + runId + '\\n\\n';\nmd += '**Report date:** ' + ts + '\\n';\nmd += '**Tickets processed:** ' + processed + '  |  **Routed:** ' + routed + '  |  **Errors:** ' + errors + '\\n';\nif (triageStats.llm !== undefined) { md += '**Triage source:** LLM: ' + (triageStats.llm || 0) + ' | Keyword fallback: ' + (triageStats.keyword_fallback || 0) + ' | Error: ' + (triageStats.error || 0) + '\\n'; }\nmd += '\\n## Pareto Analysis\\n\\n| # | Category | Count | % |\\n|---|----------|-------|---|\\n';\npareto.forEach((p, i) => { md += '| ' + (i+1) + ' | ' + cn(p.category) + ' | ' + p.count_category + ' | ' + p.percentage + '% |\\n'; });\nmd += '\\n## Trends\\n\\n| Category | Period 1 | Period 2 | Delta | Signal |\\n|----------|---------|---------|-------|--------|\\n';\ntrends.forEach(t => { var signal = t.signal === 'riser' ? 'Riser ⬆' : t.signal === 'faller' ? 'Faller ⬇' : 'Stable ➕'; md += '| ' + cn(t.category) + ' | ' + t.period1_count + ' | ' + t.period2_count + ' | ' + (t.difference > 0 ? '+' : '') + t.difference + ' | ' + signal + ' |\\n'; });\nmd += '\\n## Category Breakdown\\n\\n| Category | Count | % |\\n|----------|-------|---|\\n';\nObject.entries(catCounts).sort(function(a,b) { return b[1]-a[1]; }).forEach(function(entry) { var cat = entry[0]; var count = entry[1]; var pct = processed > 0 ? Math.round(count / processed * 100) : 0; md += '| ' + cn(cat) + ' | ' + count + ' | ' + pct + '% |\\n'; });\nmd += '\\n---\\n_Generated by n8n Helpdesk Casus — Route 1 (HTTP CSV) [v2 LLM]_\\n';\nreturn [{ json: { content: md } }];"
       },
       "name": "P7 - Format Markdown Report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1552,
-        80
+        -2160,
+        1008
       ],
-      "id": "md-format-001"
+      "id": "864c5c64-0262-4bfe-b2a9-8e1aa2d21510"
     },
     {
       "parameters": {
@@ -348,18 +347,64 @@
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        1728,
-        80
+        -1936,
+        1008
       ],
-      "id": "md-github-001",
+      "id": "943eea43-faa2-402e-8f4d-37f07b457f92",
       "webhookId": "md-webhook-001",
+      "name": "Edit a file (report.md)",
       "credentials": {
         "githubApi": {
           "id": "2ExKsDV1uRdA7qUf",
           "name": "GitHub account"
         }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "openrouter/google/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "openrouter/google/gemini-2.5-flash"
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 150,
+          "temperature": 0.1
+        }
       },
-      "name": "Edit a file (report.md)"
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -3776,
+        1184
+      ],
+      "id": "8dd38e36-0aab-458b-84dc-f96b928469ea",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "goCazsRZU27qA12U",
+          "name": "OpenAI account LiteLLM Educom"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "batching": {
+          "batchSize": 1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -3856,
+        1008
+      ],
+      "id": "11dc8759-511f-4b4b-a5f5-26437359d84c",
+      "name": "P3b - Triage"
     }
   ],
   "pinData": {},
@@ -368,17 +413,7 @@
       "main": [
         [
           {
-            "node": "HTTP Request - Get tickets.csv",
-            "type": "main",
-            "index": 0
-          },
-          {
             "node": "HTTP - Get categories.json",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "HTTP - Get queues.json",
             "type": "main",
             "index": 0
           }
@@ -400,9 +435,9 @@
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "HTTP - Get queues.json",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -411,9 +446,9 @@
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "HTTP Request - Get tickets.csv",
             "type": "main",
-            "index": 2
+            "index": 0
           }
         ]
       ]
@@ -433,14 +468,25 @@
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "P3a - Prepare LLM Messages",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "P3 & P4 - Triage & Draft Reply": {
+    "P3a - Prepare LLM Messages": {
+      "main": [
+        [
+          {
+            "node": "P3b - Triage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P3c - Parse OpenAI Response & Route": {
       "main": [
         [
           {
@@ -500,17 +546,6 @@
         ]
       ]
     },
-    "Merge": {
-      "main": [
-        [
-          {
-            "node": "P3 & P4 - Triage & Draft Reply",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "P7 & P8 - Compile Observability Report": {
       "main": [
         [
@@ -538,11 +573,6 @@
         ]
       ]
     },
-    "Edit a file": {
-      "main": [
-        []
-      ]
-    },
     "Aggregate": {
       "main": [
         [
@@ -564,6 +594,28 @@
           }
         ]
       ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "P3b - Triage",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "P3b - Triage": {
+      "main": [
+        [
+          {
+            "node": "P3c - Parse OpenAI Response & Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -575,7 +627,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "06c02747-c1ee-4976-818d-870e407691f5",
+  "versionId": "62554858-39ae-46de-9175-86ed00a33558",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "f705b3c706bbe3689e4e975952b6e01b6eb93a80fcd5a3a099acc6c333c1f690"
