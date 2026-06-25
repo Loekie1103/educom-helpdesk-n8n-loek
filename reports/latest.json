@@ -1,6 +1,6 @@
 {
   "run_id": "RUN-CBF2A275FB3846B4",
-  "timestamp": "2026-06-24T14:44:11.352Z",
+  "timestamp": "2026-06-25T08:03:55.929Z",
   "summary_processed": 20,
   "summary_errors": 0,
   "summary_routed": 20,
@@ -10,20 +10,29 @@
     "error": 0
   },
   "category_counts": {
-    "CAT_ACCESS_ACCOUNT": 3,
-    "CAT_VPN_REMOTE": 2,
+    "CAT_NETWORK_WIFI": 3,
+    "CAT_VPN_REMOTE": 1,
+    "CAT_SOFTWARE_INSTALL": 3,
+    "CAT_ACCESS_ACCOUNT": 2,
+    "CAT_HARDWARE_DEVICE": 3,
+    "CAT_ONBOARDING_HR": 2,
     "CAT_M365_COPILOT": 3,
     "CAT_GH_COPILOT": 2,
-    "CAT_PRINTER": 2,
-    "CAT_NETWORK_WIFI": 2,
-    "CAT_ONBOARDING_HR": 2,
-    "CAT_PROCUREMENT_BILLING": 1,
-    "CAT_HARDWARE_DEVICE": 1,
-    "CAT_SOFTWARE_INSTALL": 2
+    "CAT_PROCUREMENT_BILLING": 1
   },
   "pareto_analysis": [
     {
-      "category": "CAT_ACCESS_ACCOUNT",
+      "category": "CAT_NETWORK_WIFI",
+      "count_category": 3,
+      "percentage": 15
+    },
+    {
+      "category": "CAT_SOFTWARE_INSTALL",
+      "count_category": 3,
+      "percentage": 15
+    },
+    {
+      "category": "CAT_HARDWARE_DEVICE",
       "count_category": 3,
       "percentage": 15
     },
@@ -33,22 +42,7 @@
       "percentage": 15
     },
     {
-      "category": "CAT_VPN_REMOTE",
-      "count_category": 2,
-      "percentage": 10
-    },
-    {
-      "category": "CAT_GH_COPILOT",
-      "count_category": 2,
-      "percentage": 10
-    },
-    {
-      "category": "CAT_PRINTER",
-      "count_category": 2,
-      "percentage": 10
-    },
-    {
-      "category": "CAT_NETWORK_WIFI",
+      "category": "CAT_ACCESS_ACCOUNT",
       "count_category": 2,
       "percentage": 10
     },
@@ -58,17 +52,17 @@
       "percentage": 10
     },
     {
-      "category": "CAT_SOFTWARE_INSTALL",
+      "category": "CAT_GH_COPILOT",
       "count_category": 2,
       "percentage": 10
     },
     {
-      "category": "CAT_PROCUREMENT_BILLING",
+      "category": "CAT_VPN_REMOTE",
       "count_category": 1,
       "percentage": 5
     },
     {
-      "category": "CAT_HARDWARE_DEVICE",
+      "category": "CAT_PROCUREMENT_BILLING",
       "count_category": 1,
       "percentage": 5
     }
@@ -76,27 +70,34 @@
   "trends": [
     {
       "category": "CAT_SOFTWARE_INSTALL",
+      "period1_count": 3,
+      "period2_count": 0,
+      "difference": -3,
+      "signal": "faller"
+    },
+    {
+      "category": "CAT_M365_COPILOT",
+      "period1_count": 0,
+      "period2_count": 3,
+      "difference": 3,
+      "signal": "riser"
+    },
+    {
+      "category": "CAT_GH_COPILOT",
       "period1_count": 0,
       "period2_count": 2,
       "difference": 2,
       "signal": "riser"
     },
     {
-      "category": "CAT_ACCESS_ACCOUNT",
-      "period1_count": 1,
-      "period2_count": 2,
-      "difference": 1,
-      "signal": "stable"
-    },
-    {
-      "category": "CAT_M365_COPILOT",
+      "category": "CAT_NETWORK_WIFI",
       "period1_count": 2,
       "period2_count": 1,
       "difference": -1,
       "signal": "stable"
     },
     {
-      "category": "CAT_PROCUREMENT_BILLING",
+      "category": "CAT_VPN_REMOTE",
       "period1_count": 1,
       "period2_count": 0,
       "difference": -1,
@@ -104,34 +105,20 @@
     },
     {
       "category": "CAT_HARDWARE_DEVICE",
-      "period1_count": 1,
-      "period2_count": 0,
+      "period1_count": 2,
+      "period2_count": 1,
       "difference": -1,
       "signal": "stable"
     },
     {
-      "category": "CAT_VPN_REMOTE",
-      "period1_count": 1,
+      "category": "CAT_PROCUREMENT_BILLING",
+      "period1_count": 0,
       "period2_count": 1,
-      "difference": 0,
+      "difference": 1,
       "signal": "stable"
     },
     {
-      "category": "CAT_GH_COPILOT",
-      "period1_count": 1,
-      "period2_count": 1,
-      "difference": 0,
-      "signal": "stable"
-    },
-    {
-      "category": "CAT_PRINTER",
-      "period1_count": 1,
-      "period2_count": 1,
-      "difference": 0,
-      "signal": "stable"
-    },
-    {
-      "category": "CAT_NETWORK_WIFI",
+      "category": "CAT_ACCESS_ACCOUNT",
       "period1_count": 1,
       "period2_count": 1,
       "difference": 0,
